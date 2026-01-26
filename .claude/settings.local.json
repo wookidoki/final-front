@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(timeout:*)",
+      "Bash(dir \"C:\\\\Kdt_edu_leeseongwook\\\\final-project\\\\music-genz\\\\src\\\\features\" /B)",
+      "Bash(npm run build:*)"
+    ]
+  }
+}
