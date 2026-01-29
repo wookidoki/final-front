@@ -4,6 +4,7 @@ import { lazy, Suspense } from "react";
 import GlobalStyle from "./styles/GlobalStyle";
 import { createDarkTheme, createLightTheme } from "./styles/theme";
 import useUiStore from "./store/useUiStore";
+import SearchResultPage from "./pages/SearchResult/SearchResultPage";
 
 // 공통 컴포넌트 (즉시 로드)
 import ErrorBoundary from "./components/common/ErrorBoundary";
@@ -13,6 +14,7 @@ import LoadingPage from "./pages/LoadingPage/LoadingPage";
 
 // Layout (즉시 로드)
 import Layout from "./components/Layout/Layout";
+import { AuthProvider } from "./context/Authcontext";
 
 // 페이지 컴포넌트들 (lazy loading)
 const Home = lazy(() => import("./features/Home/Home"));
@@ -71,6 +73,7 @@ function App() {
       : createLightTheme(currentColorTheme, currentColorTheme === "custom" ? customColors : null);
 
   return (
+    <AuthProvider>  
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <ErrorBoundary>
@@ -136,6 +139,10 @@ function App() {
                       {/* 스타일 가이드 */}
                       <Route path="/style-guide" element={<StyleGuide />} />
 
+
+                      {/* 검색 결과 페이지 */}
+                      <Route path="/search-results" element={<SearchResultPage />} />
+
                       {/* 관리자 페이지 */}
                       <Route path="/admin" element={<AdminDashboard />} />
                       <Route path="/admin/members" element={<AdminMembers />} />
@@ -152,6 +159,7 @@ function App() {
         </BrowserRouter>
       </ErrorBoundary>
     </ThemeProvider>
+    </AuthProvider>
   );
 }
 
