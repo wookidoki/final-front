@@ -1,7 +1,14 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaCloudUploadAlt, FaVideo, FaImage, FaPlus, FaRocket } from "react-icons/fa";
+import {
+  FaCloudUploadAlt,
+  FaVideo,
+  FaImage,
+  FaPlus,
+  FaRocket,
+} from "react-icons/fa";
 import * as S from "./ShortsUpload.style";
+import axiosInstance from "../../services/Axios/Axios"; // Axios 임포트 확인
 
 const ShortsUpload = () => {
   const navigate = useNavigate();
@@ -12,7 +19,11 @@ const ShortsUpload = () => {
   const [videoPreview, setVideoPreview] = useState(null);
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
-  const [selectedThumbnail, setSelectedThumbnail] = useState(0);
+
+  // 에러 방지를 위해 빈 배열로 초기화 (추후 썸네일 추출 로직 구현 시 사용)
+  const [autoThumbnails, setAutoThumbnails] = useState([]);
+  const [selectedThumbnail, setSelectedThumbnail] = useState(-1);
+
   const [formData, setFormData] = useState({
     title: "",
     caption: "",
@@ -50,29 +61,61 @@ const ShortsUpload = () => {
     }));
   };
 
-  // 업로드 처리 (더미)
+  // 업로드 처리 (핵심 로직 구현)
   const handleSubmit = async () => {
-    if (!videoFile || !formData.title) return;
-
-    setIsUploading(true);
-
-    // 더미 업로드 진행
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      setUploadProgress(i);
+    if (!videoFile || !formData.title) {
+      alert("비디오와 제목은 필수입니다.");
+      return;
     }
 
-    setIsUploading(false);
-    alert("숏폼이 업로드되었습니다!");
-    navigate("/shorts");
-  };
+    try {
+      setIsUploading(true);
+      const data = new FormData();
 
-  // 자동 생성 썸네일 더미 데이터
-  const autoThumbnails = [
-    "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=300&fit=crop",
-    "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=200&h=300&fit=crop",
-    "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=200&h=300&fit=crop",
-  ];
+      // 1. 비디오 파일 추가
+      data.append("video", videoFile);
+
+      // 2. 썸네일 파일 추가
+      if (thumbnailFile) {
+        data.append("thumbnail", thumbnailFile);
+      }
+      // 3. JSON 데이터 가공
+      const requestDto = {
+        shortFormTitle: formData.title,
+        description: formData.caption,
+      };
+
+      //
+      const jsonBlob = new Blob([JSON.stringify(requestDto)], {
+        type: "application/json",
+      });
+      data.append("request", jsonBlob);
+
+      // 4. API 요청 전송
+      await axiosInstance.post("/api/shortforms", data, {
+        headers: {
+          // [핵심 수정] "undefined"로 설정해야 Axios의 기본 설정(application/json)을 덮어쓰고,
+          // 브라우저가 자동으로 올바른 "multipart/form-data" 헤더를 생성하게 만듭니다.
+          "Content-Type": undefined,
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total,
+          );
+          setUploadProgress(percentCompleted);
+        },
+      });
+
+      alert("업로드가 완료되었습니다!");
+      navigate("/shorts"); // 목록 페이지로 이동
+    } catch (error) {
+      console.error("업로드 실패:", error);
+      alert("업로드 중 오류가 발생했습니다.");
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
 
   return (
     <S.Container>
@@ -154,6 +197,7 @@ const ShortsUpload = () => {
                 <FaImage /> 썸네일 선택
               </S.SectionTitle>
               <S.ThumbnailSection>
+                {/* 자동 썸네일은 현재 기능이 없으므로 빈 배열 처리됨 */}
                 {autoThumbnails.map((thumb, index) => (
                   <S.ThumbnailOption
                     key={index}
@@ -163,7 +207,9 @@ const ShortsUpload = () => {
                     <S.ThumbnailImg src={thumb} alt={`썸네일 ${index + 1}`} />
                   </S.ThumbnailOption>
                 ))}
-                <S.CustomThumbnail onClick={() => thumbnailInputRef.current?.click()}>
+                <S.CustomThumbnail
+                  onClick={() => thumbnailInputRef.current?.click()}
+                >
                   <input
                     ref={thumbnailInputRef}
                     type="file"
@@ -172,7 +218,10 @@ const ShortsUpload = () => {
                     style={{ display: "none" }}
                   />
                   {thumbnailPreview ? (
-                    <S.ThumbnailImg src={thumbnailPreview} alt="커스텀 썸네일" />
+                    <S.ThumbnailImg
+                      src={thumbnailPreview}
+                      alt="커스텀 썸네일"
+                    />
                   ) : (
                     <>
                       <FaPlus />
@@ -184,9 +233,7 @@ const ShortsUpload = () => {
             </S.InputGroup>
 
             <S.ButtonGroup>
-              <S.CancelButton onClick={() => navigate(-1)}>
-                취소
-              </S.CancelButton>
+              <S.CancelButton onClick={() => navigate(-1)}>취소</S.CancelButton>
               <S.SubmitButton
                 onClick={handleSubmit}
                 disabled={!videoFile || !formData.title || isUploading}

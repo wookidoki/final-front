@@ -22,3 +22,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+#Config
+config.js
+
+# 환경 변수 파일 (API 키, DB 접속 정보 등)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 빌드 결과물 (Vite 기본값은 dist)
+dist/
+dist-ssr/
+*.out

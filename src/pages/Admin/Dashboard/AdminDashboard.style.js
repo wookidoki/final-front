@@ -1,44 +1,7 @@
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 
-export const Container = styled.div`
-  width: 100%;
-  min-height: 100vh;
-  background: ${({ theme }) => theme.colors.bg};
-  padding: 32px 40px 100px;
-
-  @media (max-width: 768px) {
-    padding: 20px;
-  }
-`;
-
-export const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-  gap: 20px;
-`;
-
-export const HeaderLeft = styled.div``;
-
-export const Title = styled.h1`
-  font-size: 2rem;
-  font-weight: 800;
-  color: ${({ theme }) => theme.colors.textMain};
-  margin-bottom: 8px;
-`;
-
-export const Subtitle = styled.p`
-  font-size: 1rem;
-  color: ${({ theme }) => theme.colors.textSub};
-`;
-
-export const HeaderRight = styled.div`
-  display: flex;
-  gap: 12px;
-`;
+// 대시보드 전용 스타일만 정의 (공통 스타일은 styles/common에서 import)
 
 export const HeaderButton = styled(Link)`
   display: flex;
@@ -133,7 +96,7 @@ export const ContentGrid = styled.div`
   }
 `;
 
-export const Card = styled.div`
+export const DashboardCard = styled.div`
   background: ${({ theme }) => theme.colors.surface};
   border: 2px solid ${({ theme }) => theme.colors.border};
   border-radius: 20px;
@@ -176,6 +139,7 @@ export const CardContent = styled.div`
   padding: 20px 24px;
 `;
 
+// 차트 관련
 export const ChartContainer = styled.div`
   display: flex;
   align-items: center;
@@ -200,8 +164,6 @@ export const DonutChart = styled.div`
   align-items: center;
   justify-content: center;
 `;
-
-export const DonutSegment = styled.div``;
 
 export const DonutCenter = styled.div`
   position: absolute;
@@ -247,6 +209,7 @@ export const LegendDot = styled.div`
   background: ${({ $color }) => $color};
 `;
 
+// 회원 목록
 export const MemberList = styled.div`
   display: flex;
   flex-direction: column;
@@ -322,6 +285,7 @@ export const MemberStatus = styled.div`
     $status === "active" ? "#10b981" : "#f59e0b"};
 `;
 
+// 공지사항 목록
 export const NoticeList = styled.div`
   display: flex;
   flex-direction: column;
@@ -384,6 +348,7 @@ export const AddButton = styled(Link)`
   }
 `;
 
+// 빠른 액션
 export const QuickActions = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
