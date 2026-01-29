@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { FaFire, FaPlay, FaMagic,FaMusic, FaChartLine, FaArrowRight } from "react-icons/fa";
 import * as S from "./Home_style";
 
-// 1. 최신곡은 우리 백엔드 API 서비스에서 가져옵니다.
 import { searchApi } from "../../services/api/searchApi"; 
 
 import usePlayerStore from "../../store/usePlayerStore";
@@ -37,16 +36,24 @@ const loadHomeData = async () => {
     }
 };
 
-  const handlePlay = (track) => {
-    const formattedTrack = formatTrack(track);
-    const playlist = newTracks.map((t) => formatTrack(t));
-    playTrack(formattedTrack, playlist);
-  };
-
-  const handleTrackClick = (track) => {
-    const formattedTrack = formatTrack(track);
-    openModal("songDetail", { track: formattedTrack });
-  };
+    const handlePlay = async (track) => {
+      let toPlay = { id: track.id, name: track.name, artist: track.artist, albumArt: track.albumArt, previewUrl: track.previewUrl || "", ...track };
+      if (!toPlay.previewUrl) {
+        try {
+          const detail = await searchApi.getTrackDetail(toPlay.id);
+          toPlay = { id: detail.trackId, name: detail.title, artist: detail.artistName, albumArt: detail.coverImgUrl, previewUrl: detail.previewUrl || "", ...detail };
+        } catch (err) {
+          console.error("상세 정보 로드 실패:", err);
+          return;
+        }
+      }
+      const playlist = newTracks.map(t => ({ ...t, previewUrl: t.previewUrl || "" }));
+      playTrack(toPlay, playlist);
+    };
+    
+    const handleTrackClick = (track) => {
+      openModal("songDetail", { track });
+    };
 
   return (
     <S.Container>

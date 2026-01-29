@@ -6,16 +6,26 @@ const formatBackendTrack = (track) => ({
     name: track.title,           // track.title (String)
     artist: track.artistName,    // track.artistName (String)
     albumArt: track.coverImgUrl?.replace("100x100", "300x300"), // track.coverImgUrl (String)
+    previewUrl: track.previewUrl || track.preview_url || ""
+});
+
+const formatBackendArtist = (a) => ({
+    apiSingerId: a.apiSingerId,
+    apiSingerName: a.apiSingerName,
+    singerImgUrl: a.singerImgUrl,
+    singerGenre: a.singerGenre || ""
 });
 
 export const searchApi = {
-    // 통합 검색
-    search: async (keyword, category) => {
+    // 통합 검색 (category: 'song' | 'artist', page optional)
+    search: async (keyword, category = 'song', page = 1) => {
         const response = await axiosInstance.get(`/api/search`, {
-            params: { keyword, category }
+            params: { keyword, category, page }
         });
-        // 검색 결과도 UI 규격에 맞게 변환해서 반환하면 좋습니다.
-        return response.data.data.map(track => formatBackendTrack(track)); 
+        const data = response.data.data || [];
+        return category === 'artist'
+            ? data.map(formatBackendArtist)
+            : data.map(formatBackendTrack);
     },
 
     // 가수 상세 정보

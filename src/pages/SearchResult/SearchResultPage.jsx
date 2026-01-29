@@ -18,7 +18,7 @@ const SearchResultPage = () => {
   const [hasMore, setHasMore] = useState(true);
   
   const observer = useRef();
-  const isFetching = useRef(false); // [핵심] 중복 요청 및 깜빡임 방지
+  const isFetching = useRef(false); 
 
   const { playTrack } = usePlayerStore();
   const { openModal } = useModalStore();
@@ -43,6 +43,7 @@ const SearchResultPage = () => {
 
     try {
       const data = await searchApi.search(keyword, category, pageNum);
+      console.log("검색 결과 데이터:", data);
       
       if (!data || data.length === 0) {
         setHasMore(false);
@@ -113,7 +114,6 @@ const SearchResultPage = () => {
               <S.MusicCard 
                 key={`${formatted.id}-${index}`} 
                 ref={index === results.length - 1 ? lastElementRef : null}
-                // [수정 포인트] 카테고리에 따라 다른 모달 오픈
                 onClick={() => {
                   if (category === 'artist') {
                     // 아티스트 상세 모달 오픈 (데이터는 formatted 또는 item 전달)
@@ -124,7 +124,6 @@ const SearchResultPage = () => {
                   }
                 }}
               >
-                {/* 아티스트일 경우 이미지 원형 스타일 적용을 고민해볼 수 있습니다 */}
                 <S.MusicCardImage 
                   src={formatted.albumArt || "https://via.placeholder.com/200"} 
                   alt={formatted.name} 
@@ -132,11 +131,36 @@ const SearchResultPage = () => {
                 />
                 
                 <S.MusicCardOverlay>
-                  <S.PlayButtonLarge onClick={(e) => {
+                  <S.PlayButtonLarge onClick={async (e) => {
                     e.stopPropagation();
-                    // 아티스트 카드에서는 바로 재생보다는 상세 진입이 일반적이나, 
-                    // 필요시 아티스트의 대표곡을 재생하는 로직을 연결할 수 있습니다.
-                    playTrack(formatted, results.map(r => formatItem(r)));
+
+                    // 아티스트 카드라면 상세 모달 열기 (재생 X)
+                    if (category === "artist") {
+                      openModal("artistDetail", { artist: formatted });
+                      return;
+                    }
+
+                    // 노래인 경우: previewUrl 없으면 상세 조회해서 보완 후 재생
+                    let toPlay = formatted;
+                    if (!toPlay.previewUrl) {
+                      try {
+                        const detail = await searchApi.getTrackDetail(toPlay.id);
+                        toPlay = {
+                          id: detail.trackId,
+                          name: detail.title,
+                          artist: detail.artistName,
+                          albumArt: detail.coverImgUrl,
+                          previewUrl: detail.previewUrl || "",
+                          ...detail
+                        };
+                      } catch (err) {
+                        console.error("상세 정보 로드 실패:", err);
+                        return;
+                      }
+                    }
+
+                    console.log("재생 시도 previewUrl:", toPlay.previewUrl);
+                    playTrack(toPlay, results.map((r) => formatItem(r)));
                   }}>
                     <FaPlay />
                   </S.PlayButtonLarge>

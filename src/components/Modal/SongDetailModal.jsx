@@ -337,6 +337,7 @@ const SongDetailModal = ({ track, onClose }) => {
         ...detail
       });
     }
+    console.log("재생 클릭:", detail);
   };
 
   // 시간 포맷팅 (ms -> mm:ss)

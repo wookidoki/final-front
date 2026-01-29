@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaPen,
@@ -12,6 +12,8 @@ import {
   FaPlay,
 } from "react-icons/fa";
 import * as S from "./Profile.style";
+import axiosInstance from "../../services/Axios/Axios";
+import { AuthContext } from "../../context/Authcontext";
 
 // 더미 데이터
 const myShortformsData = [
@@ -115,6 +117,51 @@ const TABS = [
 const Profile = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("myShortforms");
+  const auth = useContext(AuthContext);
+
+  const [user, setUser] = useState({
+    nickname: "로딩 중...",
+    genre: "-",
+    mbti: "-"
+  });
+
+useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        // 1. Postman에서 넣었던 memberId(#101)를 가져옵니다.
+        // 로그인 성공 시 localStorage.setItem("memberId", "#101") 처리가 되어있어야 합니다.
+        const memberId = auth.auth.memberId;
+
+        console.log("프로필 조회용 memberId:", memberId);
+
+
+        if (!memberId) {
+          console.error("memberId가 없습니다. 로그인을 다시 해주세요.");
+          return;
+        }
+
+        // 2. Postman 설정대로 요청 보냄
+        // Params: memberId, Header: Authorization(인터셉터가 자동처리)
+        const response = await axiosInstance.get(`/api/members`, { params: { memberId : memberId } });
+        
+
+        if (response.data && response.data.data) {
+          const data = response.data.data;
+          // Postman 응답 필드명(대문자) 반영
+          setUser({
+            nickname: data.NICKNAME || "이름 없음",
+            genre: data.GENRE || "Music Lover",
+            mbti: data.MBTI || "Creator"
+          });
+        }
+      } catch (error) {
+        console.error("프로필 조회 실패:", error);
+        setUser(prev => ({ ...prev, nickname: "Guest" }));
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleCardClick = (type, id) => {
     if (type === "shortform") {
@@ -273,12 +320,12 @@ const Profile = () => {
     <S.Container>
       {/* 프로필 헤더 */}
       <S.ProfileHeader>
-        <S.Avatar>GZ</S.Avatar>
+        <S.Avatar>{user.nickname.charAt(0).toUpperCase()}</S.Avatar>
         <S.UserInfo>
           <h1>
-            GenZ_Maker
-            <S.Tag>🎵 Music Lover</S.Tag>
-            <S.Tag>🎨 Creator</S.Tag>
+            {user.nickname}
+            <S.Tag>🎵 {user.genre}</S.Tag>
+            <S.Tag>🎨 {user.mbti}</S.Tag>
           </h1>
           <p>
             새벽 감성 플리 모으는 중. 힙하지 않으면 안 듣습니다. 팔로우 환영! 👋
