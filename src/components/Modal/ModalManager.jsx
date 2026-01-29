@@ -5,7 +5,7 @@ import useModalStore from "../../store/useModalStore";
 const NotificationModal = lazy(() => import("./NotificationModal"));
 const SongDetailModal = lazy(() => import("./SongDetailModal"));
 const LoginModal = lazy(() => import("./LoginModal"));
-const SignupModal = lazy(() => import("./SignupModal"));
+const SignupModal = lazy(() => import("./Signup/SignupModal.jsx"));
 const NoticeDetailModal = lazy(() => import("./NoticeDetailModal"));
 const ShortsDetailModal = lazy(() => import("./ShortsDetailModal"));
 const UniverseDetailModal = lazy(() => import("./UniverseDetailModal"));
@@ -15,7 +15,8 @@ const ArtistDetailModal = lazy(() => import("./ArtistDetailModel"));
 const ModalLoadingFallback = () => <div style={{ display: "none" }} />;
 
 const ModalManager = () => {
-  const { openModals, closeModal, closeModalByType, openModal } = useModalStore();
+  const { openModals, closeModal, closeModalByType, openModal } =
+    useModalStore();
 
   const renderModal = (modal) => {
     const { type, props, id } = modal;
@@ -33,7 +34,7 @@ const ModalManager = () => {
       case "songDetail":
         ModalComponent = SongDetailModal;
         break;
-      
+
       case "artistDetail":
         ModalComponent = ArtistDetailModal;
         break;

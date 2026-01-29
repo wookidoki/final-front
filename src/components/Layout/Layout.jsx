@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";
 import styled from "styled-components";
 import {
   FaHome,
@@ -10,7 +10,7 @@ import {
   FaVideo,
   FaBell,
   FaSignInAlt,
-  FaSignOutAlt
+  FaSignOutAlt,
 } from "react-icons/fa";
 import ThemeSwitcher from "../ThemeSwitcher/ThemeSwitcher";
 import MiniPlayer from "../MiniPlayer/MiniPlayer";
@@ -159,11 +159,12 @@ const SearchCenterWrapper = styled.div`
   padding: 0 20px;
 `;
 
-const Layout = ({ children }) => {
+const Layout = () => {
+  // children prop 제거
   const location = useLocation();
   const path = location.pathname;
   const { openModal } = useModalStore();
-  const {auth, logout} = useContext(AuthContext);
+  const { auth, logout } = useContext(AuthContext);
 
   return (
     <Container>
@@ -195,32 +196,38 @@ const Layout = ({ children }) => {
       </Sidebar>
       <Content>
         <TopBar>
-          <div style={{ minWidth: '250px' }} />
+          <div style={{ minWidth: "250px" }} />
           <SearchCenterWrapper>
             <Search />
           </SearchCenterWrapper>
-         
+
           <ThemeSwitcher />
           <IconButton onClick={() => openModal("notification")}>
             <FaBell />
             <NotificationBadge>3</NotificationBadge>
           </IconButton>
-          
+
           {!auth.isAuthenticated ? (
-              <>
-                <IconButton onClick={() => openModal("login")}>
-                  <FaSignInAlt />
-                </IconButton>
-              </>
+            <>
+              <IconButton onClick={() => openModal("login")}>
+                <FaSignInAlt />
+              </IconButton>
+            </>
           ) : (
             <>
-              <IconButton onClick={logout}title="로그아웃" aria-label="로그아웃">
+              <IconButton
+                onClick={logout}
+                title="로그아웃"
+                aria-label="로그아웃"
+              >
                 <FaSignOutAlt />
               </IconButton>
             </>
           )}
         </TopBar>
-        <ContentWrapper>{children}</ContentWrapper>
+        <ContentWrapper>
+          <Outlet /> {/* children 대신 Outlet */}
+        </ContentWrapper>
       </Content>
       <MiniPlayer />
     </Container>

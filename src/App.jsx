@@ -15,6 +15,7 @@ import LoadingPage from "./pages/LoadingPage/LoadingPage";
 // Layout (즉시 로드)
 import Layout from "./components/Layout/Layout";
 import { AuthProvider } from "./context/Authcontext";
+import { SignupProvider } from "./context/SignUpContext";
 
 // 페이지 컴포넌트들 (lazy loading)
 const Home = lazy(() => import("./features/Home/Home"));
@@ -31,134 +32,86 @@ const Payment = lazy(() => import("./pages/Payment/Payment"));
 const Matching = lazy(() => import("./pages/Matching/Matching"));
 const ShortsUpload = lazy(() => import("./pages/ShortsUpload/ShortsUpload"));
 const Universe = lazy(() => import("./pages/Universe/Universe"));
-const UniverseDetail = lazy(() => import("./pages/UniverseDetail/UniverseDetail"));
+const UniverseDetail = lazy(
+  () => import("./pages/UniverseDetail/UniverseDetail"),
+);
 const Error500 = lazy(() => import("./pages/ErrorPages/Error500"));
 const Error501 = lazy(() => import("./pages/ErrorPages/Error501"));
 const Error503 = lazy(() => import("./pages/ErrorPages/Error503"));
-const SignupStep1 = lazy(() => import("./pages/Signup/SignupStep1"));
-const SignupStep2 = lazy(() => import("./pages/Signup/SignupStep2"));
-const SignupStep3 = lazy(() => import("./pages/Signup/SignupStep3"));
-const SignupStep4 = lazy(() => import("./pages/Signup/SignupStep4"));
-const SignupComplete = lazy(() => import("./pages/Signup/SignupComplete"));
-const Login = lazy(() => import("./pages/Login/Login"));
-const AdminDashboard = lazy(() => import("./pages/Admin/Dashboard/AdminDashboard"));
+const Login = lazy(() => import("./pages/Login/Login")); // (선택) 페이지 로그인 유지할 때만
+const AdminDashboard = lazy(
+  () => import("./pages/Admin/Dashboard/AdminDashboard"),
+);
 const AdminMembers = lazy(() => import("./pages/Admin/Members/AdminMembers"));
 const AdminNotices = lazy(() => import("./pages/Admin/Notices/AdminNotices"));
 const ProfileEdit = lazy(() => import("./pages/ProfileEdit/ProfileEdit"));
 
-// 임시 페이지
-const Placeholder = ({ text }) => (
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      height: "80vh",
-      fontSize: "2rem",
-      color: "#888",
-    }}
-  >
-    🚧 {text} Page
-  </div>
-);
-
 function App() {
-  // store에서 현재 테마 설정 가져오기
   const { currentMode, currentColorTheme, customColors } = useUiStore();
 
-  // 동적으로 테마 생성
   const theme =
     currentMode === "dark"
-      ? createDarkTheme(currentColorTheme, currentColorTheme === "custom" ? customColors : null)
-      : createLightTheme(currentColorTheme, currentColorTheme === "custom" ? customColors : null);
+      ? createDarkTheme(
+          currentColorTheme,
+          currentColorTheme === "custom" ? customColors : null,
+        )
+      : createLightTheme(
+          currentColorTheme,
+          currentColorTheme === "custom" ? customColors : null,
+        );
 
   return (
-    <AuthProvider>  
-    <ThemeProvider theme={theme}>
-      <GlobalStyle />
-      <ErrorBoundary>
-        <BrowserRouter>
-          <Toast />
-          <ModalManager />
-          <Suspense fallback={<LoadingPage />}>
-            <Routes>
-              {/* Layout 없는 페이지들 (회원가입, 로그인, 에러 페이지 등) */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup/step1" element={<SignupStep1 />} />
-              <Route path="/signup/step2" element={<SignupStep2 />} />
-              <Route path="/signup/step3" element={<SignupStep3 />} />
-              <Route path="/signup/step4" element={<SignupStep4 />} />
-              <Route path="/signup/complete" element={<SignupComplete />} />
-              <Route path="/error/500" element={<Error500 />} />
-              <Route path="/error/501" element={<Error501 />} />
-              <Route path="/error/503" element={<Error503 />} />
-              <Route path="/loading" element={<LoadingPage />} />
+    <AuthProvider>
+      <SignupProvider>
+        <ThemeProvider theme={theme}>
+          <GlobalStyle />
+          <ErrorBoundary>
+            <BrowserRouter>
+              <Toast />
+              <ModalManager />
+              <Suspense fallback={<LoadingPage />}>
+                <Routes>
+                  {/* Layout 없는 페이지들 (에러/로딩/선택: 로그인 페이지) */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/error/500" element={<Error500 />} />
+                  <Route path="/error/501" element={<Error501 />} />
+                  <Route path="/error/503" element={<Error503 />} />
+                  <Route path="/loading" element={<LoadingPage />} />
 
-              {/* Layout 있는 페이지들 */}
-              <Route
-                path="/*"
-                element={
-                  <Layout>
-                    <Routes>
-                      {/* 메인 홈 */}
-                      <Route path="/" element={<Home />} />
+                  {/* Layout 있는 페이지들 */}
+                  <Route element={<Layout />}>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/profile/edit" element={<ProfileEdit />} />
+                    <Route path="/my-universe" element={<MyCanvas />} />
+                    <Route path="/shorts" element={<Shorts />} />
+                    <Route path="/shorts/upload" element={<ShortsUpload />} />
+                    <Route path="/universe" element={<Universe />} />
+                    <Route path="/universe/:id" element={<UniverseDetail />} />
+                    <Route path="/magazine" element={<Magazine />} />
+                    <Route path="/search" element={<Browse />} />
+                    <Route path="/notice" element={<Notice />} />
+                    <Route path="/chat" element={<Chat />} />
+                    <Route path="/payment" element={<Payment />} />
+                    <Route path="/matching" element={<Matching />} />
+                    <Route path="/style-guide" element={<StyleGuide />} />
+                    <Route
+                      path="/search-results"
+                      element={<SearchResultPage />}
+                    />
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/members" element={<AdminMembers />} />
+                    <Route path="/admin/notices" element={<AdminNotices />} />
 
-                      {/* 1. 내 홈페이지 (View Mode) */}
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/profile/edit" element={<ProfileEdit />} />
-
-                      {/* 2. 편집 페이지  - '마이 유니버스' */}
-                      <Route path="/my-universe" element={<MyCanvas />} />
-
-                      {/* 숏폼 페이지 */}
-                      <Route path="/shorts" element={<Shorts />} />
-                      <Route path="/shorts/upload" element={<ShortsUpload />} />
-
-                      {/* 유니버스 페이지 */}
-                      <Route path="/universe" element={<Universe />} />
-                      <Route path="/universe/:id" element={<UniverseDetail />} />
-
-                      {/* 매거진 페이지 */}
-                      <Route path="/magazine" element={<Magazine />} />
-
-                      {/* 둘러보기 - 차트 페이지 */}
-                      <Route path="/search" element={<Browse />} />
-
-                      {/* 공지사항 */}
-                      <Route path="/notice" element={<Notice />} />
-
-                      {/* 채팅 */}
-                      <Route path="/chat" element={<Chat />} />
-
-                      {/* 결제 */}
-                      <Route path="/payment" element={<Payment />} />
-
-                      {/* 매칭 */}
-                      <Route path="/matching" element={<Matching />} />
-
-                      {/* 스타일 가이드 */}
-                      <Route path="/style-guide" element={<StyleGuide />} />
-
-
-                      {/* 검색 결과 페이지 */}
-                      <Route path="/search-results" element={<SearchResultPage />} />
-
-                      {/* 관리자 페이지 */}
-                      <Route path="/admin" element={<AdminDashboard />} />
-                      <Route path="/admin/members" element={<AdminMembers />} />
-                      <Route path="/admin/notices" element={<AdminNotices />} />
-
-                      {/* 404 페이지 */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Layout>
-                }
-              />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </ErrorBoundary>
-    </ThemeProvider>
+                    {/* 404 */}
+                    <Route path="*" element={<NotFound />} />
+                  </Route>
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </ErrorBoundary>
+        </ThemeProvider>
+      </SignupProvider>
     </AuthProvider>
   );
 }

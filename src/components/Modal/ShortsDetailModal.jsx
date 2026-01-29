@@ -208,7 +208,8 @@ const ActionItem = styled.button`
   gap: 6px;
   background: none;
   border: none;
-  color: ${({ $active, theme }) => ($active ? theme.colors.primary : theme.colors.textSub)};
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors.primary : theme.colors.textSub};
   cursor: pointer;
   transition: all 0.3s ease;
 
@@ -535,7 +536,10 @@ const ShortsDetailModal = ({ short, onClose }) => {
                 onChange={(e) => setCommentText(e.target.value)}
                 onKeyPress={handleKeyPress}
               />
-              <SendButton onClick={handleComment} disabled={!commentText.trim()}>
+              <SendButton
+                onClick={handleComment}
+                disabled={!commentText.trim()}
+              >
                 <FaPaperPlane />
               </SendButton>
             </CommentInput>
