@@ -1,63 +1,6 @@
-import styled, { keyframes } from "styled-components";
-import { Link } from "react-router-dom";
+import styled from "styled-components";
 
-const spin = keyframes`
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-`;
-
-export const Container = styled.div`
-  width: 100%;
-  min-height: 100vh;
-  background: ${({ theme }) => theme.colors.bg};
-  padding: 32px 40px 100px;
-
-  @media (max-width: 768px) {
-    padding: 20px;
-  }
-`;
-
-export const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-  gap: 20px;
-`;
-
-export const HeaderLeft = styled.div``;
-
-export const Title = styled.h1`
-  font-size: 2rem;
-  font-weight: 800;
-  color: ${({ theme }) => theme.colors.textMain};
-  margin-bottom: 8px;
-`;
-
-export const Subtitle = styled.p`
-  font-size: 1rem;
-  color: ${({ theme }) => theme.colors.textSub};
-`;
-
-export const BackButton = styled(Link)`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: ${({ theme }) => theme.colors.surface};
-  border: 2px solid ${({ theme }) => theme.colors.border};
-  border-radius: 12px;
-  color: ${({ theme }) => theme.colors.textMain};
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
-    color: ${({ theme }) => theme.colors.primary};
-  }
-`;
+// 프로필 편집 페이지 전용 스타일만 정의 (공통 스타일은 styles/common에서 import)
 
 export const Content = styled.div`
   display: grid;
@@ -69,6 +12,7 @@ export const Content = styled.div`
   }
 `;
 
+// 아바타 섹션
 export const AvatarSection = styled.div`
   background: ${({ theme }) => theme.colors.surface};
   border: 2px solid ${({ theme }) => theme.colors.border};
@@ -166,6 +110,7 @@ export const StatItem = styled.div`
   }
 `;
 
+// 폼 섹션
 export const FormSection = styled.div`
   background: ${({ theme }) => theme.colors.surface};
   border: 2px solid ${({ theme }) => theme.colors.border};
@@ -212,94 +157,6 @@ export const FormContent = styled.div`
   padding: 32px;
 `;
 
-export const FormGroup = styled.div`
-  margin-bottom: 24px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-export const FormLabel = styled.label`
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.textMain};
-  margin-bottom: 10px;
-`;
-
-export const FormInput = styled.input`
-  width: 100%;
-  padding: 14px 16px;
-  background: ${({ theme }) => theme.colors.bg};
-  border: 2px solid ${({ $hasError, theme }) =>
-    $hasError ? "#ef4444" : theme.colors.border};
-  border-radius: 12px;
-  color: ${({ theme }) => theme.colors.textMain};
-  font-size: 0.95rem;
-
-  &:focus {
-    outline: none;
-    border-color: ${({ $hasError, theme }) =>
-      $hasError ? "#ef4444" : theme.colors.primary};
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.textMuted};
-  }
-`;
-
-export const FormTextarea = styled.textarea`
-  width: 100%;
-  min-height: 120px;
-  padding: 14px 16px;
-  background: ${({ theme }) => theme.colors.bg};
-  border: 2px solid ${({ theme }) => theme.colors.border};
-  border-radius: 12px;
-  color: ${({ theme }) => theme.colors.textMain};
-  font-size: 0.95rem;
-  resize: vertical;
-  line-height: 1.6;
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.textMuted};
-  }
-`;
-
-export const ErrorText = styled.span`
-  display: block;
-  font-size: 0.8rem;
-  color: #ef4444;
-  margin-top: 6px;
-`;
-
-export const FormHint = styled.span`
-  display: block;
-  font-size: 0.8rem;
-  color: ${({ theme }) => theme.colors.textMuted};
-  margin-top: 6px;
-`;
-
-export const FormRow = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
 export const FormActions = styled.div`
   display: flex;
   gap: 12px;
@@ -309,48 +166,7 @@ export const FormActions = styled.div`
   margin-top: 32px;
 `;
 
-export const Button = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 14px 28px;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 2px solid
-    ${({ $variant, theme }) =>
-      $variant === "primary" ? theme.colors.primary : theme.colors.border};
-  background: ${({ $variant, theme }) =>
-    $variant === "primary" ? theme.colors.gradient : "transparent"};
-  color: ${({ $variant, theme }) =>
-    $variant === "primary" ? "white" : theme.colors.textSub};
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: ${({ $variant, theme }) =>
-      $variant === "primary"
-        ? `0 8px 25px ${theme.colors.primary}50`
-        : "none"};
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-`;
-
-export const Spinner = styled.div`
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: ${spin} 0.8s linear infinite;
-`;
-
+// 성공 배너
 export const SuccessBanner = styled.div`
   display: flex;
   align-items: center;
@@ -368,6 +184,7 @@ export const SuccessBanner = styled.div`
   }
 `;
 
+// 위험 구역
 export const DangerZone = styled.div`
   margin-top: 40px;
   padding: 24px;
@@ -406,6 +223,7 @@ export const DangerButton = styled.button`
   }
 `;
 
+// 비밀번호 강도
 export const PasswordStrength = styled.div`
   margin-top: 8px;
 `;
@@ -422,26 +240,18 @@ export const StrengthFill = styled.div`
   height: 100%;
   width: ${({ $strength }) => {
     switch ($strength) {
-      case "weak":
-        return "33%";
-      case "medium":
-        return "66%";
-      case "strong":
-        return "100%";
-      default:
-        return "0%";
+      case "weak": return "33%";
+      case "medium": return "66%";
+      case "strong": return "100%";
+      default: return "0%";
     }
   }};
   background: ${({ $strength }) => {
     switch ($strength) {
-      case "weak":
-        return "#ef4444";
-      case "medium":
-        return "#f59e0b";
-      case "strong":
-        return "#10b981";
-      default:
-        return "transparent";
+      case "weak": return "#ef4444";
+      case "medium": return "#f59e0b";
+      case "strong": return "#10b981";
+      default: return "transparent";
     }
   }};
   transition: all 0.3s ease;
@@ -451,14 +261,17 @@ export const StrengthText = styled.span`
   font-size: 0.8rem;
   color: ${({ $strength }) => {
     switch ($strength) {
-      case "weak":
-        return "#ef4444";
-      case "medium":
-        return "#f59e0b";
-      case "strong":
-        return "#10b981";
-      default:
-        return "#6b7280";
+      case "weak": return "#ef4444";
+      case "medium": return "#f59e0b";
+      case "strong": return "#10b981";
+      default: return "#6b7280";
     }
   }};
+`;
+
+export const ErrorText = styled.span`
+  display: block;
+  font-size: 0.8rem;
+  color: #ef4444;
+  margin-top: 6px;
 `;
