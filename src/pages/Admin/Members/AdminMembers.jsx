@@ -1,91 +1,39 @@
 import React, { useState, useEffect } from "react";
+import { FaSearch, FaArrowLeft, FaEdit, FaTrash, FaEye, FaUsers } from "react-icons/fa";
+import { SearchBar, Pagination, Modal } from "../../../components/common";
 import {
-  FaSearch,
-  FaArrowLeft,
-  FaEdit,
-  FaTrash,
-  FaEye,
-  FaUsers,
-  FaTimes,
-  FaChevronLeft,
-  FaChevronRight,
-} from "react-icons/fa";
+  PageContainer,
+  PageHeader,
+  PageHeaderLeft,
+  PageHeaderRight,
+  PageTitle,
+  PageSubtitle,
+  BackButton,
+} from "../../../styles/common/PageLayout";
+import {
+  TableCard,
+  Table,
+  TableHeader,
+  TableHeaderCell,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableActions,
+} from "../../../styles/common/Table";
+import { FilterSection, FilterGroup, FilterSelect } from "../../../styles/common/Filter";
+import { IconButton, PrimaryButton, SecondaryButton } from "../../../styles/common/Button";
+import { StatusBadge, RoleBadge } from "../../../styles/common/Badge";
+import { Avatar, AvatarGroup, AvatarInfo, AvatarName, AvatarSubtext } from "../../../styles/common/Avatar";
+import { FormGroup, FormLabel, FormInput, FormSelect } from "../../../styles/common/Form";
+import { EmptyState } from "../../../styles/common/EmptyState";
 import * as S from "./AdminMembers.style";
 
-// 더미 데이터
 const dummyMembers = [
-  {
-    id: 1,
-    name: "GenZ_Maker",
-    email: "genz@email.com",
-    role: "user",
-    status: "active",
-    joinDate: "2024.01.18",
-    lastLogin: "2024.01.18 14:30",
-  },
-  {
-    id: 2,
-    name: "MusicLover",
-    email: "music@email.com",
-    role: "user",
-    status: "active",
-    joinDate: "2024.01.18",
-    lastLogin: "2024.01.18 12:15",
-  },
-  {
-    id: 3,
-    name: "AdminUser",
-    email: "admin@replay.com",
-    role: "admin",
-    status: "active",
-    joinDate: "2024.01.01",
-    lastLogin: "2024.01.18 15:00",
-  },
-  {
-    id: 4,
-    name: "NightOwl",
-    email: "night@email.com",
-    role: "user",
-    status: "inactive",
-    joinDate: "2024.01.17",
-    lastLogin: "2024.01.10 23:45",
-  },
-  {
-    id: 5,
-    name: "DancerKim",
-    email: "dancer@email.com",
-    role: "user",
-    status: "suspended",
-    joinDate: "2024.01.15",
-    lastLogin: "2024.01.14 18:20",
-  },
-  {
-    id: 6,
-    name: "KpopStan",
-    email: "kpop@email.com",
-    role: "user",
-    status: "active",
-    joinDate: "2024.01.14",
-    lastLogin: "2024.01.18 11:00",
-  },
-  {
-    id: 7,
-    name: "BeatMaker",
-    email: "beat@email.com",
-    role: "user",
-    status: "active",
-    joinDate: "2024.01.13",
-    lastLogin: "2024.01.17 20:30",
-  },
-  {
-    id: 8,
-    name: "SingerLee",
-    email: "singer@email.com",
-    role: "user",
-    status: "active",
-    joinDate: "2024.01.12",
-    lastLogin: "2024.01.18 09:15",
-  },
+  { id: 1, name: "GenZ_Maker", email: "genz@email.com", role: "user", status: "active", joinDate: "2024.01.18", lastLogin: "2024.01.18 14:30" },
+  { id: 2, name: "MusicLover", email: "music@email.com", role: "user", status: "active", joinDate: "2024.01.18", lastLogin: "2024.01.18 12:15" },
+  { id: 3, name: "AdminUser", email: "admin@replay.com", role: "admin", status: "active", joinDate: "2024.01.01", lastLogin: "2024.01.18 15:00" },
+  { id: 4, name: "NightOwl", email: "night@email.com", role: "user", status: "inactive", joinDate: "2024.01.17", lastLogin: "2024.01.10 23:45" },
+  { id: 5, name: "DancerKim", email: "dancer@email.com", role: "user", status: "suspended", joinDate: "2024.01.15", lastLogin: "2024.01.14 18:20" },
 ];
 
 const AdminMembers = () => {
@@ -101,41 +49,21 @@ const AdminMembers = () => {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    // TODO: API 연동
-    // fetchMembers();
-  }, []);
-
-  useEffect(() => {
     let filtered = members;
-
-    // 검색 필터
     if (searchQuery) {
-      filtered = filtered.filter(
-        (m) =>
-          m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          m.email.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(m =>
+        m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.email.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-
-    // 상태 필터
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((m) => m.status === statusFilter);
-    }
-
-    // 역할 필터
-    if (roleFilter !== "all") {
-      filtered = filtered.filter((m) => m.role === roleFilter);
-    }
-
+    if (statusFilter !== "all") filtered = filtered.filter(m => m.status === statusFilter);
+    if (roleFilter !== "all") filtered = filtered.filter(m => m.role === roleFilter);
     setFilteredMembers(filtered);
     setCurrentPage(1);
   }, [searchQuery, statusFilter, roleFilter, members]);
 
   const totalPages = Math.ceil(filteredMembers.length / itemsPerPage);
-  const paginatedMembers = filteredMembers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const paginatedMembers = filteredMembers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleEdit = (member) => {
     setSelectedMember({ ...member });
@@ -144,267 +72,139 @@ const AdminMembers = () => {
 
   const handleDelete = (memberId) => {
     if (window.confirm("정말 이 회원을 삭제하시겠습니까?")) {
-      // TODO: API 연동
-      setMembers(members.filter((m) => m.id !== memberId));
+      setMembers(members.filter(m => m.id !== memberId));
     }
   };
 
   const handleSave = () => {
-    // TODO: API 연동
-    setMembers(
-      members.map((m) => (m.id === selectedMember.id ? selectedMember : m))
-    );
+    setMembers(members.map(m => m.id === selectedMember.id ? selectedMember : m));
     setIsModalOpen(false);
-    setSelectedMember(null);
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case "active":
-        return "활성";
-      case "inactive":
-        return "비활성";
-      case "suspended":
-        return "정지";
-      default:
-        return status;
-    }
-  };
-
-  const getRoleText = (role) => {
-    return role === "admin" ? "관리자" : "일반회원";
-  };
+  const getStatusText = (status) => ({ active: "활성", inactive: "비활성", suspended: "정지" }[status] || status);
+  const getRoleText = (role) => role === "admin" ? "관리자" : "일반회원";
 
   return (
-    <S.Container>
-      <S.Header>
-        <S.HeaderLeft>
-          <S.Title>회원 관리</S.Title>
-          <S.Subtitle>
-            전체 회원 {members.length}명 | 검색 결과 {filteredMembers.length}명
-          </S.Subtitle>
-        </S.HeaderLeft>
-        <S.HeaderRight>
-          <S.BackButton to="/admin">
-            <FaArrowLeft />
-            대시보드
-          </S.BackButton>
-        </S.HeaderRight>
-      </S.Header>
+    <PageContainer>
+      <PageHeader>
+        <PageHeaderLeft>
+          <PageTitle>회원 관리</PageTitle>
+          <PageSubtitle>전체 {members.length}명 | 검색 결과 {filteredMembers.length}명</PageSubtitle>
+        </PageHeaderLeft>
+        <PageHeaderRight>
+          <BackButton to="/admin"><FaArrowLeft /> 대시보드</BackButton>
+        </PageHeaderRight>
+      </PageHeader>
 
-      <S.FilterSection>
-        <S.SearchBox>
-          <FaSearch />
-          <S.SearchInput
-            type="text"
-            placeholder="이름 또는 이메일로 검색..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </S.SearchBox>
-
-        <S.FilterGroup>
-          <S.FilterSelect
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
+      <FilterSection>
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="이름 또는 이메일로 검색..."
+        />
+        <FilterGroup>
+          <FilterSelect value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
             <option value="all">모든 상태</option>
             <option value="active">활성</option>
             <option value="inactive">비활성</option>
             <option value="suspended">정지</option>
-          </S.FilterSelect>
-
-          <S.FilterSelect
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-          >
+          </FilterSelect>
+          <FilterSelect value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
             <option value="all">모든 역할</option>
             <option value="admin">관리자</option>
             <option value="user">일반회원</option>
-          </S.FilterSelect>
-        </S.FilterGroup>
-      </S.FilterSection>
+          </FilterSelect>
+        </FilterGroup>
+      </FilterSection>
 
-      <S.TableCard>
+      <TableCard>
         {paginatedMembers.length > 0 ? (
           <>
-            <S.Table>
-              <S.TableHeader>
+            <Table>
+              <TableHeader>
                 <tr>
-                  <S.TableHeaderCell>회원 정보</S.TableHeaderCell>
-                  <S.TableHeaderCell>역할</S.TableHeaderCell>
-                  <S.TableHeaderCell>상태</S.TableHeaderCell>
-                  <S.TableHeaderCell>가입일</S.TableHeaderCell>
-                  <S.TableHeaderCell>최근 접속</S.TableHeaderCell>
-                  <S.TableHeaderCell>관리</S.TableHeaderCell>
+                  <TableHeaderCell>회원 정보</TableHeaderCell>
+                  <TableHeaderCell>역할</TableHeaderCell>
+                  <TableHeaderCell>상태</TableHeaderCell>
+                  <TableHeaderCell>가입일</TableHeaderCell>
+                  <TableHeaderCell>최근 접속</TableHeaderCell>
+                  <TableHeaderCell>관리</TableHeaderCell>
                 </tr>
-              </S.TableHeader>
-              <S.TableBody>
-                {paginatedMembers.map((member) => (
-                  <S.TableRow key={member.id}>
-                    <S.TableCell>
-                      <S.MemberInfo>
-                        <S.MemberAvatar>{member.name[0]}</S.MemberAvatar>
-                        <S.MemberDetails>
-                          <S.MemberName>{member.name}</S.MemberName>
-                          <S.MemberEmail>{member.email}</S.MemberEmail>
-                        </S.MemberDetails>
-                      </S.MemberInfo>
-                    </S.TableCell>
-                    <S.TableCell>
-                      <S.RoleBadge $role={member.role}>
-                        {getRoleText(member.role)}
-                      </S.RoleBadge>
-                    </S.TableCell>
-                    <S.TableCell>
-                      <S.StatusBadge $status={member.status}>
-                        {getStatusText(member.status)}
-                      </S.StatusBadge>
-                    </S.TableCell>
-                    <S.TableCell>
-                      <S.DateText>{member.joinDate}</S.DateText>
-                    </S.TableCell>
-                    <S.TableCell>
-                      <S.DateText>{member.lastLogin}</S.DateText>
-                    </S.TableCell>
-                    <S.TableCell>
-                      <S.ActionButtons>
-                        <S.ActionButton
-                          $variant="view"
-                          title="상세보기"
-                          onClick={() => handleEdit(member)}
-                        >
-                          <FaEye />
-                        </S.ActionButton>
-                        <S.ActionButton
-                          $variant="edit"
-                          title="수정"
-                          onClick={() => handleEdit(member)}
-                        >
-                          <FaEdit />
-                        </S.ActionButton>
-                        <S.ActionButton
-                          $variant="delete"
-                          title="삭제"
-                          onClick={() => handleDelete(member.id)}
-                        >
-                          <FaTrash />
-                        </S.ActionButton>
-                      </S.ActionButtons>
-                    </S.TableCell>
-                  </S.TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedMembers.map(member => (
+                  <TableRow key={member.id}>
+                    <TableCell>
+                      <AvatarGroup>
+                        <Avatar>{member.name[0]}</Avatar>
+                        <AvatarInfo>
+                          <AvatarName>{member.name}</AvatarName>
+                          <AvatarSubtext>{member.email}</AvatarSubtext>
+                        </AvatarInfo>
+                      </AvatarGroup>
+                    </TableCell>
+                    <TableCell><RoleBadge $isAdmin={member.role === "admin"}>{getRoleText(member.role)}</RoleBadge></TableCell>
+                    <TableCell><StatusBadge $status={member.status}>{getStatusText(member.status)}</StatusBadge></TableCell>
+                    <TableCell><S.DateText>{member.joinDate}</S.DateText></TableCell>
+                    <TableCell><S.DateText>{member.lastLogin}</S.DateText></TableCell>
+                    <TableCell>
+                      <TableActions>
+                        <IconButton $variant="info" onClick={() => handleEdit(member)}><FaEye /></IconButton>
+                        <IconButton $variant="primary" onClick={() => handleEdit(member)}><FaEdit /></IconButton>
+                        <IconButton $variant="danger" onClick={() => handleDelete(member.id)}><FaTrash /></IconButton>
+                      </TableActions>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </S.TableBody>
-            </S.Table>
-
-            {totalPages > 1 && (
-              <S.Pagination>
-                <S.PageButton
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                >
-                  <FaChevronLeft />
-                </S.PageButton>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (page) => (
-                    <S.PageButton
-                      key={page}
-                      $active={currentPage === page}
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </S.PageButton>
-                  )
-                )}
-                <S.PageButton
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                >
-                  <FaChevronRight />
-                </S.PageButton>
-              </S.Pagination>
-            )}
+              </TableBody>
+            </Table>
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
           </>
         ) : (
-          <S.EmptyState>
-            <FaUsers />
-            <p>검색 결과가 없습니다</p>
-          </S.EmptyState>
+          <EmptyState><FaUsers /><p>검색 결과가 없습니다</p></EmptyState>
         )}
-      </S.TableCard>
+      </TableCard>
 
-      {/* 회원 수정 모달 */}
-      {isModalOpen && selectedMember && (
-        <S.Modal onClick={() => setIsModalOpen(false)}>
-          <S.ModalContent onClick={(e) => e.stopPropagation()}>
-            <S.ModalHeader>
-              <S.ModalTitle>회원 정보 수정</S.ModalTitle>
-              <S.ModalClose onClick={() => setIsModalOpen(false)}>
-                <FaTimes />
-              </S.ModalClose>
-            </S.ModalHeader>
-            <S.ModalBody>
-              <S.FormGroup>
-                <S.FormLabel>이름</S.FormLabel>
-                <S.FormInput
-                  type="text"
-                  value={selectedMember.name}
-                  onChange={(e) =>
-                    setSelectedMember({ ...selectedMember, name: e.target.value })
-                  }
-                />
-              </S.FormGroup>
-              <S.FormGroup>
-                <S.FormLabel>이메일</S.FormLabel>
-                <S.FormInput
-                  type="email"
-                  value={selectedMember.email}
-                  disabled
-                />
-              </S.FormGroup>
-              <S.FormGroup>
-                <S.FormLabel>역할</S.FormLabel>
-                <S.FormSelect
-                  value={selectedMember.role}
-                  onChange={(e) =>
-                    setSelectedMember({ ...selectedMember, role: e.target.value })
-                  }
-                >
-                  <option value="user">일반회원</option>
-                  <option value="admin">관리자</option>
-                </S.FormSelect>
-              </S.FormGroup>
-              <S.FormGroup>
-                <S.FormLabel>상태</S.FormLabel>
-                <S.FormSelect
-                  value={selectedMember.status}
-                  onChange={(e) =>
-                    setSelectedMember({
-                      ...selectedMember,
-                      status: e.target.value,
-                    })
-                  }
-                >
-                  <option value="active">활성</option>
-                  <option value="inactive">비활성</option>
-                  <option value="suspended">정지</option>
-                </S.FormSelect>
-              </S.FormGroup>
-            </S.ModalBody>
-            <S.ModalFooter>
-              <S.ModalButton onClick={() => setIsModalOpen(false)}>
-                취소
-              </S.ModalButton>
-              <S.ModalButton $variant="primary" onClick={handleSave}>
-                저장
-              </S.ModalButton>
-            </S.ModalFooter>
-          </S.ModalContent>
-        </S.Modal>
-      )}
-    </S.Container>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="회원 정보 수정"
+        footer={
+          <>
+            <SecondaryButton onClick={() => setIsModalOpen(false)}>취소</SecondaryButton>
+            <PrimaryButton onClick={handleSave}>저장</PrimaryButton>
+          </>
+        }
+      >
+        {selectedMember && (
+          <>
+            <FormGroup>
+              <FormLabel>이름</FormLabel>
+              <FormInput value={selectedMember.name} onChange={e => setSelectedMember({...selectedMember, name: e.target.value})} />
+            </FormGroup>
+            <FormGroup>
+              <FormLabel>이메일</FormLabel>
+              <FormInput value={selectedMember.email} disabled />
+            </FormGroup>
+            <FormGroup>
+              <FormLabel>역할</FormLabel>
+              <FormSelect value={selectedMember.role} onChange={e => setSelectedMember({...selectedMember, role: e.target.value})}>
+                <option value="user">일반회원</option>
+                <option value="admin">관리자</option>
+              </FormSelect>
+            </FormGroup>
+            <FormGroup>
+              <FormLabel>상태</FormLabel>
+              <FormSelect value={selectedMember.status} onChange={e => setSelectedMember({...selectedMember, status: e.target.value})}>
+                <option value="active">활성</option>
+                <option value="inactive">비활성</option>
+                <option value="suspended">정지</option>
+              </FormSelect>
+            </FormGroup>
+          </>
+        )}
+      </Modal>
+    </PageContainer>
   );
 };
 

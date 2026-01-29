@@ -204,6 +204,36 @@ const UniverseDetail = () => {
     };
   };
 
+  // 도형 SVG 렌더러
+  const renderShapeSVG = (shapeType, fillColor, strokeColor, strokeWidth, glow, glowColor) => {
+    const style = {
+      width: "100%",
+      height: "100%",
+      filter: glow ? `drop-shadow(0 0 10px ${glowColor || fillColor})` : "none",
+    };
+
+    switch (shapeType) {
+      case "circle":
+        return <svg viewBox="0 0 100 100" style={style}><circle cx="50" cy="50" r="45" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} /></svg>;
+      case "square":
+        return <svg viewBox="0 0 100 100" style={style}><rect x="5" y="5" width="90" height="90" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} /></svg>;
+      case "rounded":
+        return <svg viewBox="0 0 100 100" style={style}><rect x="5" y="5" width="90" height="90" rx="15" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} /></svg>;
+      case "triangle":
+        return <svg viewBox="0 0 100 100" style={style}><polygon points="50,5 95,95 5,95" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} /></svg>;
+      case "star":
+        return <svg viewBox="0 0 100 100" style={style}><polygon points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} /></svg>;
+      case "heart":
+        return <svg viewBox="0 0 100 100" style={style}><path d="M50,88 C20,60 5,40 5,25 C5,10 20,5 35,5 C45,5 50,15 50,15 C50,15 55,5 65,5 C80,5 95,10 95,25 C95,40 80,60 50,88Z" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} /></svg>;
+      case "hexagon":
+        return <svg viewBox="0 0 100 100" style={style}><polygon points="50,5 93,27 93,73 50,95 7,73 7,27" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} /></svg>;
+      case "diamond":
+        return <svg viewBox="0 0 100 100" style={style}><polygon points="50,5 95,50 50,95 5,50" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} /></svg>;
+      default:
+        return <svg viewBox="0 0 100 100" style={style}><circle cx="50" cy="50" r="45" fill={fillColor} /></svg>;
+    }
+  };
+
   // 위젯 렌더링
   const renderWidget = (widget) => {
     const style = {
@@ -238,15 +268,49 @@ const UniverseDetail = () => {
             style={style}
             $borderRadius={widget.data?.borderRadius || 12}
           >
-            <img src={widget.data?.url} alt="" />
+            {widget.data?.url && <img src={widget.data.url} alt={widget.data?.alt || ""} />}
           </S.ImageWidget>
         );
 
       case "STICKER":
         return (
-          <S.StickerWidget key={widget.id} style={style}>
+          <S.StickerWidget key={widget.id} style={style} $animation={widget.data?.animation}>
             {widget.data?.icon}
           </S.StickerWidget>
+        );
+
+      case "SHAPE":
+        return (
+          <S.ShapeWidget key={widget.id} style={style}>
+            {renderShapeSVG(
+              widget.data?.shapeType || "circle",
+              widget.data?.fillColor || "#ff0080",
+              widget.data?.strokeColor || "transparent",
+              widget.data?.strokeWidth || 0,
+              widget.data?.glow,
+              widget.data?.glowColor
+            )}
+          </S.ShapeWidget>
+        );
+
+      case "MUSIC":
+        return (
+          <S.MusicWidget key={widget.id} style={style}>
+            <S.MusicCover $style={widget.data?.style}>
+              {widget.data?.coverUrl ? (
+                <img src={widget.data.coverUrl} alt="" />
+              ) : (
+                <FaMusic />
+              )}
+            </S.MusicCover>
+            <S.MusicInfo>
+              <S.MusicTitle>{widget.data?.title || "노래 제목"}</S.MusicTitle>
+              <S.MusicArtist>{widget.data?.artist || "아티스트"}</S.MusicArtist>
+            </S.MusicInfo>
+            {widget.data?.showPlayButton !== false && (
+              <S.MusicPlayBtn><FaPlay /></S.MusicPlayBtn>
+            )}
+          </S.MusicWidget>
         );
 
       case "PLAYLIST":
@@ -261,7 +325,10 @@ const UniverseDetail = () => {
             </S.PlaylistCover>
             <S.PlaylistInfo>
               <h4>{widget.data?.title || "플레이리스트"}</h4>
-              <span>{widget.data?.artist || "아티스트"}</span>
+              <span>
+                {widget.data?.creator || ""}
+                {widget.data?.showTrackCount !== false && widget.data?.trackCount && ` · ${widget.data.trackCount}곡`}
+              </span>
             </S.PlaylistInfo>
             <S.PlayButton>
               <FaPlay />

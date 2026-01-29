@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import api from "../../../api/axios";
+import axiosInstance from "../../../services/Axios/Axios";
 
 /**
  * 숏폼 데이터 로딩 훅
@@ -30,14 +30,14 @@ const useShortsData = (keyword = "") => {
         const params = { size: 10, sort: "latest" };
         if (cursorId) params.lastShortFormId = cursorId;
 
-        let endpoint = "/shortforms";
+        let endpoint = "/api/shortforms";
         if (keyword && keyword.trim() !== "") {
-          endpoint = "/shortforms/search";
+          endpoint = "api/shortforms";
           params.keyword = keyword;
           params.condition = "all";
         }
 
-        const response = await api.get(endpoint, { params });
+        const response = await axiosInstance.get(endpoint, { params });
         const resultData = response.data.data;
         const newShorts = resultData.content || [];
         const pagination = resultData.pagination || {};
@@ -52,7 +52,9 @@ const useShortsData = (keyword = "") => {
           if (!cursorId) return newShorts;
           const uniqueNewShorts = newShorts.filter(
             (item) =>
-              !prev.some((prevItem) => prevItem.shortFormId === item.shortFormId)
+              !prev.some(
+                (prevItem) => prevItem.shortFormId === item.shortFormId,
+              ),
           );
           return [...prev, ...uniqueNewShorts];
         });
@@ -65,7 +67,7 @@ const useShortsData = (keyword = "") => {
         setLoading(false);
       }
     },
-    [keyword, loading]
+    [keyword, loading],
   );
 
   // 초기 로드
@@ -93,61 +95,64 @@ const useShortsData = (keyword = "") => {
             loadMore();
           }
         },
-        { threshold: 0.5 }
+        { threshold: 0.5 },
       );
 
       if (node) observer.current.observe(node);
     },
-    [loading, hasNext, loadMore]
+    [loading, hasNext, loadMore],
   );
 
   // 좋아요 토글
-  const toggleLike = useCallback(async (shortFormId) => {
-    const isLiked = likedVideos.has(shortFormId);
+  const toggleLike = useCallback(
+    async (shortFormId) => {
+      const isLiked = likedVideos.has(shortFormId);
 
-    setLikedVideos((prev) => {
-      const newSet = new Set(prev);
-      if (isLiked) newSet.delete(shortFormId);
-      else newSet.add(shortFormId);
-      return newSet;
-    });
-
-    // 숏폼 목록에서 좋아요 수 업데이트
-    setShorts((prev) =>
-      prev.map((short) =>
-        short.shortFormId === shortFormId
-          ? {
-              ...short,
-              likeCount: isLiked
-                ? (short.likeCount || 1) - 1
-                : (short.likeCount || 0) + 1,
-            }
-          : short
-      )
-    );
-
-    try {
-      if (isLiked) {
-        await api.delete(`/shortforms/${shortFormId}/like`);
-      } else {
-        await api.post(`/shortforms/${shortFormId}/like`);
-      }
-    } catch (error) {
-      console.error("좋아요 처리 실패:", error);
-      // 실패 시 롤백
       setLikedVideos((prev) => {
         const newSet = new Set(prev);
-        if (isLiked) newSet.add(shortFormId);
-        else newSet.delete(shortFormId);
+        if (isLiked) newSet.delete(shortFormId);
+        else newSet.add(shortFormId);
         return newSet;
       });
-    }
-  }, [likedVideos]);
+
+      // 숏폼 목록에서 좋아요 수 업데이트
+      setShorts((prev) =>
+        prev.map((short) =>
+          short.shortFormId === shortFormId
+            ? {
+                ...short,
+                likeCount: isLiked
+                  ? (short.likeCount || 1) - 1
+                  : (short.likeCount || 0) + 1,
+              }
+            : short,
+        ),
+      );
+
+      try {
+        if (isLiked) {
+          await axiosInstance.delete(`/shortforms/${shortFormId}/like`);
+        } else {
+          await axiosInstance.post(`/shortforms/${shortFormId}/like`);
+        }
+      } catch (error) {
+        console.error("좋아요 처리 실패:", error);
+        // 실패 시 롤백
+        setLikedVideos((prev) => {
+          const newSet = new Set(prev);
+          if (isLiked) newSet.add(shortFormId);
+          else newSet.delete(shortFormId);
+          return newSet;
+        });
+      }
+    },
+    [likedVideos],
+  );
 
   // 좋아요 상태 확인
   const isLiked = useCallback(
     (shortFormId) => likedVideos.has(shortFormId),
-    [likedVideos]
+    [likedVideos],
   );
 
   return {
