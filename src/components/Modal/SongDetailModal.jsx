@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 import {
   FaPlay,
@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import BaseModal from "./BaseModal";
 import usePlayerStore from "../../store/usePlayerStore";
+import { searchApi } from "../../services/api/searchApi";
 
 const spin = keyframes`
   from {
@@ -277,86 +278,107 @@ const RelatedArtistName = styled.div`
   white-space: nowrap;
 `;
 
+const LoadingWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  color: ${({ theme }) => theme.colors.textSub};
+`;
+
 const SongDetailModal = ({ track, onClose }) => {
   const [isLiked, setIsLiked] = useState(false);
+  const [songDetail, setSongDetail] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { currentTrack, isPlaying, playTrack, togglePlay } = usePlayerStore();
 
-  const isCurrentTrack = currentTrack?.id === track.id;
+  // 1. API 데이터 호출
+  useEffect(() => {
+    const fetchDetail = async () => {
+      setLoading(true);
+      try {
+        // 응답 구조에 맞게 상세 정보를 가져옵니다.
+        const data = await searchApi.getTrackDetail(track.id);
+        setSongDetail(data);
+      } catch (error) {
+        console.error("노래 상세 로드 실패:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (track?.id) fetchDetail();
+  }, [track?.id]);
+
+  // 로딩 처리
+  if (loading) {
+    return (
+      <BaseModal onClose={onClose} maxWidth="700px" hideHeader>
+        <LoadingWrapper>노래 정보를 가져오는 중입니다...</LoadingWrapper>
+      </BaseModal>
+    );
+  }
+
+  // 2. 데이터 바인딩 (API 응답 필드 기준)
+  const detail = songDetail || {};
+  const isCurrentTrack = currentTrack?.id === detail.trackId;
   const isTrackPlaying = isCurrentTrack && isPlaying;
 
   const handlePlayClick = () => {
     if (isCurrentTrack) {
       togglePlay();
     } else {
-      playTrack(track);
+      // 플레이어 스토어 형식에 맞게 데이터 가공
+      playTrack({
+        id: detail.trackId,
+        name: detail.title,
+        artist: detail.artistName,
+        albumArt: detail.coverImgUrl,
+        previewUrl: detail.previewUrl,
+        ...detail
+      });
     }
   };
 
-  // 더미 가사 데이터
-  const lyrics = `어쩌면 우리 모두 다
-같은 꿈을 꾸고 있었나봐
-밤하늘 가득 찬 별빛처럼
-반짝이는 순간들
-
-Every moment feels like magic
-하루 끝에 만나는 멜로디
-마음을 담은 리듬 위로
-춤추는 나의 감정들
-
-We're all dancing in the moonlight
-손을 잡고 함께 노래해
-이 순간이 영원하길
-RE:PLAY 우리의 시간`;
-
-  // 더미 연관 곡 데이터
-  const relatedTracks = [
-    {
-      id: 101,
-      name: "Neon Dreams",
-      artist: "Digital Youth",
-      albumArt: "https://picsum.photos/seed/related1/300/300",
-    },
-    {
-      id: 102,
-      name: "Cyber Love",
-      artist: "Tech Hearts",
-      albumArt: "https://picsum.photos/seed/related2/300/300",
-    },
-    {
-      id: 103,
-      name: "Virtual Paradise",
-      artist: "Pixel Beats",
-      albumArt: "https://picsum.photos/seed/related3/300/300",
-    },
-  ];
+  // 시간 포맷팅 (ms -> mm:ss)
+  const formatDuration = (ms) => {
+    if (!ms) return "0:00";
+    const minutes = Math.floor(ms / 60000);
+    const seconds = ((ms % 60000) / 1000).toFixed(0);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
 
   return (
     <BaseModal onClose={onClose} maxWidth="700px" hideHeader>
       <Container>
         <HeroSection>
           <AlbumArtContainer>
-            <AlbumArt src={track.albumArt} alt={track.name} $isPlaying={isTrackPlaying} />
+            <AlbumArt 
+              src={detail.coverImgUrl} 
+              alt={detail.title} 
+              $isPlaying={isTrackPlaying} 
+            />
             <PlayOverlay onClick={handlePlayClick}>
               <PlayButton>{isTrackPlaying ? <FaPause /> : <FaPlay />}</PlayButton>
             </PlayOverlay>
           </AlbumArtContainer>
 
           <TrackInfo>
-            <TrackTitle>{track.name}</TrackTitle>
-            <ArtistName>{track.artist}</ArtistName>
+            <TrackTitle>{detail.title}</TrackTitle>
+            <ArtistName>{detail.artistName}</ArtistName>
 
             <TrackMeta>
               <MetaItem>
                 <FaMusic />
-                <span>{track.genre || "Pop"}</span>
+                <span>{detail.genreName || "Pop"}</span>
               </MetaItem>
               <MetaItem>
                 <FaClock />
-                <span>{track.duration || "3:24"}</span>
+                <span>{formatDuration(detail.trackTimeMillis)}</span>
               </MetaItem>
               <MetaItem>
                 <FaCalendar />
-                <span>{track.releaseDate || "2024"}</span>
+                {/* releaseDate: "2017-04-27..." 형식에서 연도만 추출 */}
+                <span>{detail.releaseDate?.substring(0, 4) || "N/A"}</span>
               </MetaItem>
             </TrackMeta>
 
@@ -369,45 +391,18 @@ RE:PLAY 우리의 시간`;
                 {isLiked ? <FaHeart /> : <FaRegHeart />}
                 {isLiked ? "좋아요 취소" : "좋아요"}
               </ActionButton>
-              <ActionButton>
-                <FaPlus />
-                재생목록
-              </ActionButton>
-              <ActionButton>
-                <FaShare />
-                공유
-              </ActionButton>
+              <ActionButton><FaPlus /> 재생목록</ActionButton>
+              <ActionButton><FaShare /> 공유</ActionButton>
             </ActionButtons>
           </TrackInfo>
         </HeroSection>
 
         <Section>
-          <SectionTitle>
-            <FaMusic />
-            가사
-          </SectionTitle>
-          <LyricsList>{lyrics}</LyricsList>
-        </Section>
-
-        <Section>
-          <SectionTitle>
-            <FaMusic />
-            비슷한 곡
-          </SectionTitle>
-          <RelatedTracks>
-            {relatedTracks.map((relatedTrack) => (
-              <RelatedTrackItem key={relatedTrack.id}>
-                <RelatedAlbumArt src={relatedTrack.albumArt} alt={relatedTrack.name} />
-                <RelatedTrackInfo>
-                  <RelatedTrackName>{relatedTrack.name}</RelatedTrackName>
-                  <RelatedArtistName>{relatedTrack.artist}</RelatedArtistName>
-                </RelatedTrackInfo>
-                <ActionButton onClick={() => playTrack(relatedTrack)}>
-                  <FaPlay />
-                </ActionButton>
-              </RelatedTrackItem>
-            ))}
-          </RelatedTracks>
+          <SectionTitle><FaMusic /> 가사</SectionTitle>
+          {/* lyrics 필드의 이스케이프 문자(\r\n) 처리 */}
+          <LyricsList style={{ whiteSpace: 'pre-line' }}>
+            {detail.lyrics || "등록된 가사가 없습니다."}
+          </LyricsList>
         </Section>
       </Container>
     </BaseModal>

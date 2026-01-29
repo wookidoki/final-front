@@ -4,6 +4,7 @@ import { lazy, Suspense } from "react";
 import GlobalStyle from "./styles/GlobalStyle";
 import { createDarkTheme, createLightTheme } from "./styles/theme";
 import useUiStore from "./store/useUiStore";
+import SearchResultPage from "./pages/SearchResult/SearchResultPage";
 
 // 공통 컴포넌트 (즉시 로드)
 import ErrorBoundary from "./components/common/ErrorBoundary";
@@ -120,6 +121,9 @@ function App() {
 
                       {/* 스타일 가이드 */}
                       <Route path="/style-guide" element={<StyleGuide />} />
+
+                      {/* 검색 결과 페이지 */}
+                      <Route path="/search-results" element={<SearchResultPage />} />
 
                       {/* 404 페이지 */}
                       <Route path="*" element={<NotFound />} />

@@ -14,6 +14,7 @@ import {
 import ThemeSwitcher from "../ThemeSwitcher/ThemeSwitcher";
 import MiniPlayer from "../MiniPlayer/MiniPlayer";
 import useModalStore from "../../store/useModalStore";
+import Search from "../Search/Search";
 
 const Container = styled.div`
   display: flex;
@@ -149,6 +150,13 @@ const ContentWrapper = styled.div`
   padding-top: 70px;
 `;
 
+const SearchCenterWrapper = styled.div`
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+`;
+
 const Layout = ({ children }) => {
   const location = useLocation();
   const path = location.pathname;
@@ -184,6 +192,11 @@ const Layout = ({ children }) => {
       </Sidebar>
       <Content>
         <TopBar>
+          <div style={{ minWidth: '250px' }} />
+          <SearchCenterWrapper>
+            <Search />
+          </SearchCenterWrapper>
+         
           <ThemeSwitcher />
           <IconButton onClick={() => openModal("notification")}>
             <FaBell />
