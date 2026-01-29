@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import styled from "styled-components";
 import { FaUser, FaLock, FaEnvelope, FaGoogle, FaApple, FaSpotify } from "react-icons/fa";
 import BaseModal from "./BaseModal";
+import api from "../../services/Axios/Axios";
+import { AuthContext } from "../../context/Authcontext";
 
 const Container = styled.div`
   display: flex;
@@ -228,6 +230,7 @@ const ErrorMessage = styled.div`
 `;
 
 const LoginModal = ({ onClose, onSwitchToSignup }) => {
+  const { setAuth } = useContext(AuthContext); // 전역 상태 변경 함수 가져오기
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -243,25 +246,60 @@ const LoginModal = ({ onClose, onSwitchToSignup }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    // 간단한 유효성 검사
     if (!formData.email || !formData.password) {
       setError("이메일과 비밀번호를 입력해주세요");
       return;
     }
 
-    // TODO: 실제 로그인 로직
-    console.log("Login attempt:", formData);
-    // 성공 시 모달 닫기
-    onClose();
-  };
+    try {
+      // 1. 이미지 명세서와 동일한 데이터 구조 생성
+      const requestData = {
+        memberDto: {
+          email: formData.email,
+        },
+        password: formData.password,
+      };
 
-  const handleSocialLogin = (provider) => {
-    console.log(`Login with ${provider}`);
-    // TODO: 소셜 로그인 로직
+      // 2. 로그인 요청
+      const response = await api.post("/api/members/login", requestData);
+
+      // 3. 응답 처리 (성공 시)
+      if (response.data && response.data.status === 200) {
+        const { accessToken, refreshToken, memberId, role, email } = response.data.data;
+
+        // 로컬 스토리지 저장 (axios 인터셉터 키값에 맞춤)
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+        localStorage.setItem("memberId", memberId);
+        localStorage.setItem("role", role);
+        localStorage.setItem("email", email || formData.email);
+
+        // AuthContext 전역 상태 업데이트
+        setAuth({
+          memberId,
+          email: email || formData.email,
+          accesstoken: accessToken,
+          refreshtoken: refreshToken,
+          role,
+          isAuthenticated: true,
+        });
+
+        alert("로그인에 성공했습니다!");
+        onClose(); 
+        // 전역 상태가 바뀌었으므로 새로고침 없이도 UI가 업데이트됩니다.
+      }
+    } catch (err) {
+      console.error("Login Error:", err);
+      if (err.response && err.response.status === 401) {
+        setError("이메일 또는 비밀번호가 일치하지 않습니다.");
+      } else {
+        setError(err.response?.data?.message || "로그인 중 오류가 발생했습니다.");
+      }
+    }
   };
 
   return (
@@ -278,9 +316,7 @@ const LoginModal = ({ onClose, onSwitchToSignup }) => {
           <InputGroup>
             <Label>이메일</Label>
             <InputWrapper>
-              <InputIcon>
-                <FaEnvelope />
-              </InputIcon>
+              <InputIcon><FaEnvelope /></InputIcon>
               <Input
                 type="email"
                 name="email"
@@ -294,9 +330,7 @@ const LoginModal = ({ onClose, onSwitchToSignup }) => {
           <InputGroup>
             <Label>비밀번호</Label>
             <InputWrapper>
-              <InputIcon>
-                <FaLock />
-              </InputIcon>
+              <InputIcon><FaLock /></InputIcon>
               <Input
                 type="password"
                 name="password"
@@ -307,44 +341,19 @@ const LoginModal = ({ onClose, onSwitchToSignup }) => {
             </InputWrapper>
           </InputGroup>
 
-          <CheckboxGroup>
-            <CheckboxLabel>
-              <input
-                type="checkbox"
-                name="remember"
-                checked={formData.remember}
-                onChange={handleChange}
-              />
-              로그인 상태 유지
-            </CheckboxLabel>
-            <ForgotLink>비밀번호 찾기</ForgotLink>
-          </CheckboxGroup>
-
           <SubmitButton type="submit">로그인</SubmitButton>
         </Form>
 
-        <Divider>
-          <span>또는</span>
-        </Divider>
+        <Divider><span>또는</span></Divider>
 
         <SocialButtons>
-          <SocialButton type="button" onClick={() => handleSocialLogin("google")}>
-            <FaGoogle />
-            Google로 계속하기
-          </SocialButton>
-          <SocialButton type="button" onClick={() => handleSocialLogin("apple")}>
-            <FaApple />
-            Apple로 계속하기
-          </SocialButton>
-          <SocialButton type="button" onClick={() => handleSocialLogin("spotify")}>
-            <FaSpotify />
-            Spotify로 계속하기
-          </SocialButton>
+          <SocialButton type="button"><FaGoogle /> Google로 계속하기</SocialButton>
+          <SocialButton type="button"><FaApple /> Apple로 계속하기</SocialButton>
+          <SocialButton type="button"><FaSpotify /> Spotify로 계속하기</SocialButton>
         </SocialButtons>
 
         <SignupPrompt>
-          아직 계정이 없으신가요?{" "}
-          <a onClick={onSwitchToSignup}>회원가입</a>
+          아직 계정이 없으신가요? <a onClick={onSwitchToSignup}>회원가입</a>
         </SignupPrompt>
       </Container>
     </BaseModal>

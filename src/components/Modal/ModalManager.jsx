@@ -9,6 +9,7 @@ const SignupModal = lazy(() => import("./SignupModal"));
 const NoticeDetailModal = lazy(() => import("./NoticeDetailModal"));
 const ShortsDetailModal = lazy(() => import("./ShortsDetailModal"));
 const UniverseDetailModal = lazy(() => import("./UniverseDetailModal"));
+const ArtistDetailModal = lazy(() => import("./ArtistDetailModel"));
 
 // 모달 로딩 중 fallback 컴포넌트
 const ModalLoadingFallback = () => <div style={{ display: "none" }} />;
@@ -31,6 +32,10 @@ const ModalManager = () => {
 
       case "songDetail":
         ModalComponent = SongDetailModal;
+        break;
+      
+      case "artistDetail":
+        ModalComponent = ArtistDetailModal;
         break;
 
       case "login":

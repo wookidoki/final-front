@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import {
-  FaFire,
-  FaPlay,
-  FaMagic,
-  FaChartLine,
-  FaMusic,
-  FaHeart,
-  FaArrowRight,
-} from "react-icons/fa";
+import { FaFire, FaPlay, FaMagic,FaMusic, FaChartLine, FaArrowRight } from "react-icons/fa";
 import * as S from "./Home_style";
-import { getTrendingMusic, getChartData, formatTrack } from "../../services/itunesApi";
+
+// 1. 최신곡은 우리 백엔드 API 서비스에서 가져옵니다.
+import { searchApi } from "../../services/api/searchApi"; 
+
 import usePlayerStore from "../../store/usePlayerStore";
 import useModalStore from "../../store/useModalStore";
 
 const Home = () => {
-  const [trendingTracks, setTrendingTracks] = useState([]);
+  const [newTracks, setNewTracks] = useState([]);
   const [chartPreview, setChartPreview] = useState([]);
   const [loading, setLoading] = useState(true);
   const { playTrack } = usePlayerStore();
@@ -25,27 +19,27 @@ const Home = () => {
     loadHomeData();
   }, []);
 
-  const loadHomeData = async () => {
+const loadHomeData = async () => {
     setLoading(true);
     try {
-      const [trending, charts] = await Promise.all([
-        getTrendingMusic(),
-        getChartData(),
-      ]);
+        
+        const [newMusic, topChart] = await Promise.all([
+            searchApi.getNewTracks(),
+            searchApi.getTopMusic() 
+        ]);
 
-      setTrendingTracks(trending.slice(0, 6));
-      // 차트에서 상위 5곡 추출
-      setChartPreview([...charts.kpop.slice(0, 5)]);
+        setNewTracks(newMusic); 
+        setChartPreview(topChart); 
     } catch (error) {
-      console.error("Failed to load home data:", error);
+        console.error("로드 실패:", error);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   const handlePlay = (track) => {
     const formattedTrack = formatTrack(track);
-    const playlist = trendingTracks.map((t) => formatTrack(t));
+    const playlist = newTracks.map((t) => formatTrack(t));
     playTrack(formattedTrack, playlist);
   };
 
@@ -88,11 +82,11 @@ const Home = () => {
         </S.FloatingElements>
       </S.HeroSection>
 
-      {/* Trending Music Section */}
+
       <S.Section>
         <S.SectionHeader>
           <S.SectionTitle>
-            <FaFire /> 지금 핫한 음악
+            <FaFire color="#ff4d4d" /> 방금 올라온 신곡
           </S.SectionTitle>
           <S.ViewAllLink to="/search">
             전체 보기 <FaArrowRight />
@@ -103,33 +97,29 @@ const Home = () => {
           <S.LoadingText>음악을 불러오는 중...</S.LoadingText>
         ) : (
           <S.MusicGrid>
-            {trendingTracks.map((track) => {
-              const formatted = formatTrack(track);
-              return (
-                <S.MusicCard key={formatted.id} onClick={() => handleTrackClick(track)}>
-                  <S.MusicCardImage src={formatted.albumArt} alt={formatted.name} />
-                  <S.MusicCardOverlay>
-                    <S.PlayButtonLarge
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePlay(track);
-                      }}
-                    >
-                      <FaPlay />
-                    </S.PlayButtonLarge>
-                  </S.MusicCardOverlay>
-                  <S.MusicCardInfo>
-                    <S.MusicCardTitle>{formatted.name}</S.MusicCardTitle>
-                    <S.MusicCardArtist>{formatted.artist}</S.MusicCardArtist>
-                  </S.MusicCardInfo>
-                </S.MusicCard>
-              );
-            })}
+            {newTracks.map((track, index) => (
+              <S.MusicCard key={`new-track-${track.id || index}`} onClick={() => handleTrackClick(track)}>
+                <S.MusicCardImage src={track.albumArt} alt={track.name} />
+                <S.MusicCardOverlay>
+                  <S.PlayButtonLarge
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePlay(track);
+                    }}
+                  >
+                    <FaPlay />
+                  </S.PlayButtonLarge>
+                </S.MusicCardOverlay>
+                <S.MusicCardInfo>
+                  <S.MusicCardTitle>{track.name}</S.MusicCardTitle>
+                  <S.MusicCardArtist>{track.artist}</S.MusicCardArtist>
+                </S.MusicCardInfo>
+              </S.MusicCard>
+            ))}
           </S.MusicGrid>
         )}
       </S.Section>
 
-      {/* Chart Preview Section */}
       <S.Section>
         <S.SectionHeader>
           <S.SectionTitle>
@@ -144,27 +134,24 @@ const Home = () => {
           <S.LoadingText>차트를 불러오는 중...</S.LoadingText>
         ) : (
           <S.ChartList>
-            {chartPreview.map((track, index) => {
-              const formatted = formatTrack(track);
-              return (
-                <S.ChartItem key={formatted.id} onClick={() => handleTrackClick(track)}>
-                  <S.ChartRank>{index + 1}</S.ChartRank>
-                  <S.ChartAlbumArt src={formatted.albumArt} alt={formatted.name} />
-                  <S.ChartTrackInfo>
-                    <S.ChartTrackName>{formatted.name}</S.ChartTrackName>
-                    <S.ChartArtistName>{formatted.artist}</S.ChartArtistName>
-                  </S.ChartTrackInfo>
-                  <S.ChartPlayButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePlay(track);
-                    }}
-                  >
-                    <FaPlay />
-                  </S.ChartPlayButton>
-                </S.ChartItem>
-              );
-            })}
+            {chartPreview.map((track, index) => (
+              <S.ChartItem key={`top-chart-${track.id || index}`} onClick={() => handleTrackClick(track)}>
+                <S.ChartRank>{index + 1}</S.ChartRank>
+                <S.ChartAlbumArt src={track.albumArt} alt={track.name} />
+                <S.ChartTrackInfo>
+                  <S.ChartTrackName>{track.name}</S.ChartTrackName>
+                  <S.ChartArtistName>{track.artist}</S.ChartArtistName>
+                </S.ChartTrackInfo>
+                <S.ChartPlayButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlay(track);
+                  }}
+                >
+                  <FaPlay />
+                </S.ChartPlayButton>
+              </S.ChartItem>
+            ))}
           </S.ChartList>
         )}
       </S.Section>
