@@ -14,6 +14,7 @@ import LoadingPage from "./pages/LoadingPage/LoadingPage";
 
 // Layout (즉시 로드)
 import Layout from "./components/Layout/Layout";
+import { AuthProvider } from "./context/Authcontext";
 
 // 페이지 컴포넌트들 (lazy loading)
 const Home = lazy(() => import("./features/Home/Home"));
@@ -28,6 +29,9 @@ const Notice = lazy(() => import("./pages/Notice/Notice"));
 const Chat = lazy(() => import("./pages/Chat/Chat"));
 const Payment = lazy(() => import("./pages/Payment/Payment"));
 const Matching = lazy(() => import("./pages/Matching/Matching"));
+const ShortsUpload = lazy(() => import("./pages/ShortsUpload/ShortsUpload"));
+const Universe = lazy(() => import("./pages/Universe/Universe"));
+const UniverseDetail = lazy(() => import("./pages/UniverseDetail/UniverseDetail"));
 const Error500 = lazy(() => import("./pages/ErrorPages/Error500"));
 const Error501 = lazy(() => import("./pages/ErrorPages/Error501"));
 const Error503 = lazy(() => import("./pages/ErrorPages/Error503"));
@@ -36,6 +40,11 @@ const SignupStep2 = lazy(() => import("./pages/Signup/SignupStep2"));
 const SignupStep3 = lazy(() => import("./pages/Signup/SignupStep3"));
 const SignupStep4 = lazy(() => import("./pages/Signup/SignupStep4"));
 const SignupComplete = lazy(() => import("./pages/Signup/SignupComplete"));
+const Login = lazy(() => import("./pages/Login/Login"));
+const AdminDashboard = lazy(() => import("./pages/Admin/Dashboard/AdminDashboard"));
+const AdminMembers = lazy(() => import("./pages/Admin/Members/AdminMembers"));
+const AdminNotices = lazy(() => import("./pages/Admin/Notices/AdminNotices"));
+const ProfileEdit = lazy(() => import("./pages/ProfileEdit/ProfileEdit"));
 
 // 임시 페이지
 const Placeholder = ({ text }) => (
@@ -64,6 +73,7 @@ function App() {
       : createLightTheme(currentColorTheme, currentColorTheme === "custom" ? customColors : null);
 
   return (
+    <AuthProvider>  
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <ErrorBoundary>
@@ -72,7 +82,8 @@ function App() {
           <ModalManager />
           <Suspense fallback={<LoadingPage />}>
             <Routes>
-              {/* Layout 없는 페이지들 (회원가입, 에러 페이지 등) */}
+              {/* Layout 없는 페이지들 (회원가입, 로그인, 에러 페이지 등) */}
+              <Route path="/login" element={<Login />} />
               <Route path="/signup/step1" element={<SignupStep1 />} />
               <Route path="/signup/step2" element={<SignupStep2 />} />
               <Route path="/signup/step3" element={<SignupStep3 />} />
@@ -94,12 +105,18 @@ function App() {
 
                       {/* 1. 내 홈페이지 (View Mode) */}
                       <Route path="/profile" element={<Profile />} />
+                      <Route path="/profile/edit" element={<ProfileEdit />} />
 
                       {/* 2. 편집 페이지  - '마이 유니버스' */}
                       <Route path="/my-universe" element={<MyCanvas />} />
 
                       {/* 숏폼 페이지 */}
                       <Route path="/shorts" element={<Shorts />} />
+                      <Route path="/shorts/upload" element={<ShortsUpload />} />
+
+                      {/* 유니버스 페이지 */}
+                      <Route path="/universe" element={<Universe />} />
+                      <Route path="/universe/:id" element={<UniverseDetail />} />
 
                       {/* 매거진 페이지 */}
                       <Route path="/magazine" element={<Magazine />} />
@@ -122,8 +139,14 @@ function App() {
                       {/* 스타일 가이드 */}
                       <Route path="/style-guide" element={<StyleGuide />} />
 
+
                       {/* 검색 결과 페이지 */}
                       <Route path="/search-results" element={<SearchResultPage />} />
+
+                      {/* 관리자 페이지 */}
+                      <Route path="/admin" element={<AdminDashboard />} />
+                      <Route path="/admin/members" element={<AdminMembers />} />
+                      <Route path="/admin/notices" element={<AdminNotices />} />
 
                       {/* 404 페이지 */}
                       <Route path="*" element={<NotFound />} />
@@ -136,6 +159,7 @@ function App() {
         </BrowserRouter>
       </ErrorBoundary>
     </ThemeProvider>
+    </AuthProvider>
   );
 }
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import {
@@ -10,11 +10,13 @@ import {
   FaVideo,
   FaBell,
   FaSignInAlt,
+  FaSignOutAlt
 } from "react-icons/fa";
 import ThemeSwitcher from "../ThemeSwitcher/ThemeSwitcher";
 import MiniPlayer from "../MiniPlayer/MiniPlayer";
 import useModalStore from "../../store/useModalStore";
 import Search from "../Search/Search";
+import { AuthContext } from "../../context/Authcontext";
 
 const Container = styled.div`
   display: flex;
@@ -161,6 +163,7 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const path = location.pathname;
   const { openModal } = useModalStore();
+  const {auth, logout} = useContext(AuthContext);
 
   return (
     <Container>
@@ -202,9 +205,20 @@ const Layout = ({ children }) => {
             <FaBell />
             <NotificationBadge>3</NotificationBadge>
           </IconButton>
-          <IconButton onClick={() => openModal("login")}>
-            <FaSignInAlt />
-          </IconButton>
+          
+          {!auth.isAuthenticated ? (
+              <>
+                <IconButton onClick={() => openModal("login")}>
+                  <FaSignInAlt />
+                </IconButton>
+              </>
+          ) : (
+            <>
+              <IconButton onClick={logout}title="로그아웃" aria-label="로그아웃">
+                <FaSignOutAlt />
+              </IconButton>
+            </>
+          )}
         </TopBar>
         <ContentWrapper>{children}</ContentWrapper>
       </Content>
