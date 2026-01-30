@@ -1,12 +1,14 @@
-import React, { useState, useCallback } from "react";
-import { FaTimes, FaPlus } from "react-icons/fa"; // FaPlus 추가
-import { useNavigate } from "react-router-dom"; // 페이지 이동을 위해 추가
+import React, { useState, useCallback, useEffect } from "react";
+import { FaTimes, FaPlus } from "react-icons/fa";
+import { useNavigate, useLocation } from "react-router-dom";
 import { SearchBar, ShortsFeed, ShortsGrid } from "./components";
 import { useShortsData } from "./hooks";
+import axiosInstance from "../../services/Axios/Axios";
 import * as S from "./Shorts.style";
 
 const Shorts = () => {
-  const navigate = useNavigate(); // 이동 훅
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // 검색 키워드 상태
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -16,6 +18,28 @@ const Shorts = () => {
   // 데이터 훅 사용
   const { shorts, loading, lastElementRef, toggleLike, isLiked } =
     useShortsData(searchKeyword);
+
+  // 특정 숏폼으로
+  useEffect(() => {
+    const shortFormId = location.state?.shortFormId;
+    if (!shortFormId) return;
+
+    const fetchAndOpen = async () => {
+      try {
+        const res = await axiosInstance.get(`/api/shortforms/${shortFormId}`);
+        const data = res.data?.data;
+        if (data) {
+          setSelectedShort(data);
+        }
+      } catch (err) {
+        console.error("숏폼 상세 조회 실패:", err);
+      }
+    };
+    fetchAndOpen();
+
+    // state 소비 후 정리 (뒤로가기 시 재열림 방지)
+    window.history.replaceState({}, "");
+  }, [location.state]);
 
   // 검색 실행
   const handleSearch = useCallback((keyword) => {
@@ -37,7 +61,7 @@ const Shorts = () => {
     setSelectedShort(null);
   }, []);
 
-  // 업로드 버튼 클릭 핸들러 (추가됨)
+  // 업로드 버튼 클릭 핸들러
   const handleUploadClick = useCallback(() => {
     navigate("/shorts/upload");
   }, [navigate]);

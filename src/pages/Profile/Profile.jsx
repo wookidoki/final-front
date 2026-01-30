@@ -131,7 +131,7 @@ const Profile = () => {
 
   const handleCardClick = (type, id) => {
     if (type === "shortform") {
-      navigate(`/shorts`);
+      navigate("/shorts", { state: { shortFormId: id } });
     } else if (type === "universe") {
       navigate(`/universe/${id}`);
     }

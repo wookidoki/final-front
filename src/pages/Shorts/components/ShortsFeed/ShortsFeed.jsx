@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FaHeart,
   FaRegHeart,
@@ -8,22 +8,57 @@ import {
   FaVideo,
 } from "react-icons/fa";
 import VideoPlayer from "../VideoPlayer";
+import CommentPanel from "../CommentPanel";
 import * as S from "./ShortsFeed.style";
 
 /**
  * 숏폼 피드 컴포넌트 (틱톡 스타일 전체화면 스크롤)
- * @param {array} shorts - 숏폼 목록
- * @param {boolean} loading - 로딩 상태
- * @param {function} lastElementRef - 마지막 요소 ref (무한 스크롤)
- * @param {function} onLike - 좋아요 콜백
- * @param {function} isLiked - 좋아요 상태 확인 함수
  */
 const ShortsFeed = ({ shorts, loading, lastElementRef, onLike, isLiked }) => {
+  const [commentTarget, setCommentTarget] = useState(null);
+  // 댓글 수 로컬 관리 (API에서 commentCount가 올 수도 있고 없을 수도 있음)
+  const [commentCounts, setCommentCounts] = useState({});
+
   const formatCount = (num) => {
     if (!num) return "0";
     if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
     if (num >= 1000) return (num / 1000).toFixed(1) + "K";
     return num.toString();
+  };
+
+  const getCommentCount = (short) => {
+    if (commentCounts[short.shortFormId] !== undefined) {
+      return commentCounts[short.shortFormId];
+    }
+    return short.commentCount || 0;
+  };
+
+  const handleOpenComments = (shortFormId) => {
+    setCommentTarget(shortFormId);
+  };
+
+  const handleCloseComments = () => {
+    setCommentTarget(null);
+  };
+
+  const handleCommentCountChange = (shortFormId) => (updater) => {
+    setCommentCounts((prev) => ({
+      ...prev,
+      [shortFormId]:
+        typeof updater === "function"
+          ? updater(prev[shortFormId] ?? 0)
+          : updater,
+    }));
+  };
+
+  const handleShare = (short) => {
+    const url = `${window.location.origin}/shorts?id=${short.shortFormId}`;
+    if (navigator.share) {
+      navigator.share({ title: short.shortFormTitle, url });
+    } else {
+      navigator.clipboard.writeText(url);
+      alert("링크가 복사되었습니다!");
+    }
   };
 
   if (shorts.length === 0 && !loading) {
@@ -87,18 +122,27 @@ const ShortsFeed = ({ shorts, loading, lastElementRef, onLike, isLiked }) => {
                 </S.ActionText>
               </S.ActionButton>
 
-              <S.ActionButton>
+              <S.ActionButton onClick={() => handleOpenComments(short.shortFormId)}>
                 <FaComment />
                 <S.ActionText>
-                  {formatCount(short.commentCount || 0)}
+                  {formatCount(getCommentCount(short))}
                 </S.ActionText>
               </S.ActionButton>
 
-              <S.ActionButton>
+              <S.ActionButton onClick={() => handleShare(short)}>
                 <FaShare />
                 <S.ActionText>공유</S.ActionText>
               </S.ActionButton>
             </S.RightActions>
+
+            {/* 댓글 패널 */}
+            {commentTarget === short.shortFormId && (
+              <CommentPanel
+                shortFormId={short.shortFormId}
+                onClose={handleCloseComments}
+                onCommentCountChange={handleCommentCountChange(short.shortFormId)}
+              />
+            )}
           </S.FeedItem>
         );
       })}

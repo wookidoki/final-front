@@ -3,7 +3,7 @@ import styled from "styled-components";
 // 전체 페이지 컨테이너
 export const Container = styled.div`
   width: 100%;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 70px);
   background-color: #000;
   display: flex;
   flex-direction: column;
@@ -25,11 +25,11 @@ export const SearchWrapper = styled.div`
 // 컨텐츠 영역
 export const ContentArea = styled.div`
   flex: 1;
+  min-height: 0;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   overflow: hidden;
-  padding-top: ${({ $hasSearch }) => ($hasSearch ? "0" : "0")};
 `;
 
 // 뷰어 모달 (그리드에서 클릭 시)
