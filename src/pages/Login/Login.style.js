@@ -1,21 +1,8 @@
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 import { Link } from "react-router-dom";
+import { spin, float } from "../../styles/common/animations";
 
-const float = keyframes`
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(5deg); }
-`;
-
-const spin = keyframes`
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-`;
-
-const gradient = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-`;
+// 로그인 페이지 전용 스타일 (공통 애니메이션만 import)
 
 export const Container = styled.div`
   width: 100%;
@@ -124,17 +111,14 @@ export const InputWrapper = styled.div`
   display: flex;
   align-items: center;
   background: ${({ theme }) => theme.colors.bg};
-  border: 2px solid ${({ $hasError, theme }) =>
-    $hasError ? "#ff4d4f" : theme.colors.border};
+  border: 2px solid ${({ $hasError, theme }) => $hasError ? "#ff4d4f" : theme.colors.border};
   border-radius: 14px;
   padding: 0 16px;
   transition: all 0.2s ease;
 
   &:focus-within {
-    border-color: ${({ $hasError, theme }) =>
-      $hasError ? "#ff4d4f" : theme.colors.primary};
-    box-shadow: 0 0 0 3px ${({ $hasError, theme }) =>
-      $hasError ? "#ff4d4f20" : `${theme.colors.primary}20`};
+    border-color: ${({ $hasError, theme }) => $hasError ? "#ff4d4f" : theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ $hasError, theme }) => $hasError ? "#ff4d4f20" : `${theme.colors.primary}20`};
   }
 `;
 
@@ -301,7 +285,6 @@ export const SocialButton = styled.button`
           background: white;
           border: 2px solid #ddd;
           color: #333;
-
           &:hover {
             background: #f5f5f5;
             border-color: #ccc;
@@ -312,7 +295,6 @@ export const SocialButton = styled.button`
           background: #FEE500;
           border: none;
           color: #191919;
-
           &:hover {
             background: #e6cf00;
           }
@@ -322,7 +304,6 @@ export const SocialButton = styled.button`
           background: #03C75A;
           border: none;
           color: white;
-
           &:hover {
             background: #02b351;
           }

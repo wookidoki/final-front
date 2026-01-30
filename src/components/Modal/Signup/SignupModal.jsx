@@ -8,23 +8,19 @@ import {
   ErrorMessage,
 } from "./SignupModal.styles";
 
-import SignupStep1 from "./steps/SignupStep1";
-import SignupStep2 from "./steps/SignupStep2";
-import SignupStep3 from "./steps/SignupStep3";
-import SignupStep4 from "./steps/SignupStep4";
-import SignupStep5 from "./steps/SignupStep5";
-import SignupComplete from "./steps/SignupComplete";
-
-//  axiosPublic(공개용) import
-import axiosPublic from "../../../services/Axios/AxiosPrivate";
-// ↑ 경로는 본인 프로젝트 axiosPublic 실제 위치로 맞추세요
+import SignupStep1 from "./Steps/Step1Account";
+import SignupStep2 from "./Steps/Step2Profile";
+import SignupStep3 from "./Steps/Step3Extra";
+import SignupStep4 from "./Steps/Step4Genres";
+import SignupStep5 from "./Steps/Step5Terms";
+import SignupComplete from "./Steps/Step6Complete";
+import axiosInstance, { axiosPublic } from "../../../services/Axios/Axios";
 
 const SignupModal = ({ onClose, onSwitchToLogin }) => {
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  //  폼 데이터 state (FormData 말고 그냥 객체 state)
   const [formData, setFormData] = useState({
     memberId: "",
     email: "",
@@ -36,35 +32,33 @@ const SignupModal = ({ onClose, onSwitchToLogin }) => {
     phone: "",
     job: "",
     mbti: "",
-    favoriteGenres: [],
+    genre: [], // ✅ 여러개 선택 배열
     agreeTerms: false,
     agreePrivacy: false,
-    agreeMarketing: false,
+    agreeMarketing: false, // ✅ 서버 DTO에 없으면 전송 X
   });
 
   const next = () => setStep((s) => Math.min(6, s + 1));
   const back = () => setStep((s) => Math.max(1, s - 1));
 
-  //  여기서 요청 보냄 (Step5 완료 버튼에서 호출)
   const submitSignup = async () => {
     setError("");
     setIsLoading(true);
 
     try {
-      // 서버가 원하는 요청 구조로 payload 구성
-      // (지금은 가장 일반적인 JSON 형태)
       const payload = {
-        memberId: formData.memberId,
-        email: formData.email,
         password: formData.password,
-        name: formData.name,
-        nickName: formData.nickName,
-        gender: formData.gender,
-        phone: formData.phone,
-        job: formData.job,
-        mbti: formData.mbti,
-        favoriteGenres: formData.favoriteGenres,
-        agreeMarketing: formData.agreeMarketing,
+        memberDto: {
+          memberId: formData.memberId,
+          email: formData.email,
+          gender: formData.gender,
+          mbti: formData.mbti,
+          name: formData.name,
+          nickName: formData.nickName,
+          phone: formData.phone,
+          job: formData.job,
+          genre: (formData.genre || []).join(","), // ✅ 콤마 문자열
+        },
       };
 
       const res = await axiosPublic.post("/api/auth/signUp", payload);
@@ -72,7 +66,7 @@ const SignupModal = ({ onClose, onSwitchToLogin }) => {
       const message = res?.data?.message || "회원가입이 완료되었습니다.";
       alert(message);
 
-      setStep(6); //  완료 화면
+      setStep(6); // ✅ Step6로 이동
     } catch (err) {
       console.log(err);
 
@@ -83,13 +77,27 @@ const SignupModal = ({ onClose, onSwitchToLogin }) => {
           err?.response?.data?.message || "회원가입 중 오류가 발생했습니다.",
         );
       }
+
+      // ✅ Step5에서 필드별 에러를 보여주기 위해 throw
+      throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleGoLogin = () => {
+    // ✅ 회원가입 모달 자동 닫기 + 로그인 모달로 전환
+    onClose?.();
+    onSwitchToLogin?.();
+  };
+
   return (
-    <BaseModal onClose={onClose} maxWidth="550px" hideHeader>
+    <BaseModal
+      onClose={onClose}
+      maxWidth="550px"
+      hideHeader
+      closeOnOverlayClick={false}
+    >
       <Container>
         {step <= 5 && (
           <ProgressBar>
@@ -129,7 +137,6 @@ const SignupModal = ({ onClose, onSwitchToLogin }) => {
           />
         )}
 
-        {/*  Step5에서 완료 버튼 누르면 submitSignup 실행 */}
         {step === 5 && (
           <SignupStep5
             data={formData}
@@ -140,7 +147,7 @@ const SignupModal = ({ onClose, onSwitchToLogin }) => {
           />
         )}
 
-        {step === 6 && <SignupComplete onLogin={onSwitchToLogin} />}
+        {step === 6 && <SignupComplete onLogin={handleGoLogin} />}
       </Container>
     </BaseModal>
   );

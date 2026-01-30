@@ -1,4 +1,3 @@
-// SignupModal.styles.js
 import styled from "styled-components";
 
 export const Container = styled.div`
@@ -41,6 +40,11 @@ export const Button = styled.button`
     $primary ? theme.colors.gradient : theme.colors.bg};
 
   color: ${({ $primary }) => ($primary ? "#fff" : "inherit")};
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 export const ErrorMessage = styled.div`
@@ -49,4 +53,5 @@ export const ErrorMessage = styled.div`
   background: rgba(255, 0, 0, 0.1);
   color: #ff4444;
   font-size: 0.9rem;
+  font-weight: 0.9rem;
 `;

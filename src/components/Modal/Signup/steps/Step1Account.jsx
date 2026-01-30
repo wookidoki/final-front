@@ -1,88 +1,174 @@
-import React from "react";
-import { FaEnvelope, FaHashtag, FaLock } from "react-icons/fa";
+import React, { useMemo, useState } from "react";
 import {
-  StepTitle,
-  StepDescription,
+  StepWrap,
+  Title,
+  Desc,
   Form,
-  InputGroup,
+  Field,
   Label,
-  InputWrapper,
-  InputIcon,
   Input,
-} from "./Step1Account";
+  HintRow,
+  Hint,
+  LocalError,
+  Inline,
+  CheckBadge,
+} from "./Step1Account.styles";
 
-const Step1Account = ({ formData, setField }) => {
+import { ButtonGroup, Button } from "../SignupModal.styles";
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const memberIdRegex = /^#[^\s]{1,19}$/;
+
+const Step1Account = ({ data, setData, onNext }) => {
+  const [localError, setLocalError] = useState("");
+
+  const memberIdState = useMemo(() => {
+    const v = (data.memberId || "").trim();
+
+    if (!v) return { status: "idle", msg: "" };
+    if (v.length > 20)
+      return { status: "invalid", msg: "최대 20자까지 입력할 수 있어요." };
+    if (!v.startsWith("#"))
+      return { status: "invalid", msg: "아이디는 #로 시작해야 해요." };
+    if (/\s/.test(v))
+      return { status: "invalid", msg: "공백은 사용할 수 없어요." };
+    if (!memberIdRegex.test(v))
+      return { status: "invalid", msg: "형식이 올바르지 않습니다." };
+
+    return { status: "valid", msg: "사용 가능한 형식입니다." };
+  }, [data.memberId]);
+
+  const emailState = useMemo(() => {
+    const v = (data.email || "").trim();
+    if (!v) return { status: "idle", msg: "" };
+    if (!emailRegex.test(v))
+      return { status: "invalid", msg: "이메일 형식이 올바르지 않습니다." };
+    return { status: "valid", msg: "올바른 이메일 형식입니다." };
+  }, [data.email]);
+
+  const isValid = useMemo(() => {
+    const idOk = memberIdState.status === "valid";
+    const emailOk = emailState.status === "valid";
+    const pwOk = (data.password || "").length >= 8;
+    const pwMatch = (data.password || "") === (data.passwordConfirm || "");
+    return idOk && emailOk && pwOk && pwMatch;
+  }, [data, memberIdState.status, emailState.status]);
+
+  const update = (key) => (e) => {
+    let value = e.target.value;
+
+    if (key === "memberId") value = value.slice(0, 20);
+
+    setData((prev) => ({ ...prev, [key]: value }));
+    setLocalError("");
+  };
+
+  const handleNext = () => {
+    setLocalError("");
+
+    if (!data.memberId?.trim()) return setLocalError("아이디를 입력해 주세요.");
+    if (memberIdState.status !== "valid")
+      return setLocalError(memberIdState.msg);
+
+    if (!data.email?.trim()) return setLocalError("이메일을 입력해 주세요.");
+    if (emailState.status !== "valid") return setLocalError(emailState.msg);
+
+    if (!data.password) return setLocalError("비밀번호를 입력해 주세요.");
+    if (data.password.length < 8)
+      return setLocalError("비밀번호는 8자 이상이어야 합니다.");
+    if (data.password !== data.passwordConfirm)
+      return setLocalError("비밀번호 확인이 일치하지 않습니다.");
+
+    onNext();
+  };
+
   return (
-    <>
-      <StepTitle>계정 정보</StepTitle>
-      <StepDescription>RE:PLAY에서 사용할 계정을 만들어주세요</StepDescription>
+    <StepWrap>
+      <div>
+        <Title>계정 만들기</Title>
+        <Desc>아이디와 이메일은 형식 검증 후 다음 단계로 이동합니다.</Desc>
+      </div>
 
       <Form>
-        <InputGroup>
-          <Label>회원 ID</Label>
-          <InputWrapper>
-            <InputIcon>
-              <FaHashtag />
-            </InputIcon>
-            <Input
-              type="text"
-              name="memberId"
-              placeholder="#으로 시작 (예: #user123)"
-              value={formData.memberId}
-              onChange={(e) => setField("memberId", e.target.value)}
-            />
-          </InputWrapper>
-        </InputGroup>
+        <Field>
+          <Label>아이디</Label>
+          <Input
+            value={data.memberId}
+            onChange={update("memberId")}
+            placeholder="예) #jooyoung!!"
+            autoFocus
+            autoComplete="username"
+          />
 
-        <InputGroup>
+          <HintRow>
+            <Hint>#로 시작 / 공백 금지 / 최대 20자</Hint>
+            {memberIdState.status !== "idle" && (
+              <CheckBadge $status={memberIdState.status}>
+                {memberIdState.status === "valid" ? "OK" : "확인"}
+              </CheckBadge>
+            )}
+          </HintRow>
+
+          {memberIdState.msg && <Hint>{memberIdState.msg}</Hint>}
+        </Field>
+
+        {/* email */}
+        <Field>
           <Label>이메일</Label>
-          <InputWrapper>
-            <InputIcon>
-              <FaEnvelope />
-            </InputIcon>
-            <Input
-              type="email"
-              name="email"
-              placeholder="example@email.com"
-              value={formData.email}
-              onChange={(e) => setField("email", e.target.value)}
-            />
-          </InputWrapper>
-        </InputGroup>
+          <Input
+            value={data.email}
+            onChange={update("email")}
+            placeholder="예) you@example.com"
+            autoComplete="email"
+          />
 
-        <InputGroup>
-          <Label>비밀번호</Label>
-          <InputWrapper>
-            <InputIcon>
-              <FaLock />
-            </InputIcon>
+          <HintRow>
+            <Hint>이메일 형식을 확인해 주세요</Hint>
+            {emailState.status !== "idle" && (
+              <CheckBadge $status={emailState.status}>
+                {emailState.status === "valid" ? "OK" : "형식 오류"}
+              </CheckBadge>
+            )}
+          </HintRow>
+
+          {emailState.msg && <Hint>{emailState.msg}</Hint>}
+        </Field>
+
+        {/* password */}
+        <Inline>
+          <Field>
+            <Label>비밀번호</Label>
             <Input
               type="password"
-              name="password"
-              placeholder="영문+숫자 5~20자"
-              value={formData.password}
-              onChange={(e) => setField("password", e.target.value)}
+              value={data.password}
+              onChange={update("password")}
+              placeholder="8자 이상"
+              autoComplete="new-password"
             />
-          </InputWrapper>
-        </InputGroup>
+          </Field>
 
-        <InputGroup>
-          <Label>비밀번호 확인</Label>
-          <InputWrapper>
-            <InputIcon>
-              <FaLock />
-            </InputIcon>
+          <Field>
+            <Label>비밀번호 확인</Label>
             <Input
               type="password"
-              name="passwordConfirm"
-              placeholder="비밀번호 재입력"
-              value={formData.passwordConfirm}
-              onChange={(e) => setField("passwordConfirm", e.target.value)}
+              value={data.passwordConfirm}
+              onChange={update("passwordConfirm")}
+              placeholder="한 번 더 입력"
+              autoComplete="new-password"
             />
-          </InputWrapper>
-        </InputGroup>
+          </Field>
+        </Inline>
+
+        {localError && <LocalError>{localError}</LocalError>}
       </Form>
-    </>
+
+      <ButtonGroup>
+        <Button $primary disabled={!isValid} onClick={handleNext}>
+          다음
+        </Button>
+      </ButtonGroup>
+    </StepWrap>
   );
 };
 

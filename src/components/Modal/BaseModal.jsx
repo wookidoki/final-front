@@ -3,23 +3,13 @@ import styled, { keyframes } from "styled-components";
 import { FaTimes } from "react-icons/fa";
 
 const fadeIn = keyframes`
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 `;
 
 const slideUp = keyframes`
-  from {
-    transform: translateY(50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 `;
 
 const Overlay = styled.div`
@@ -50,7 +40,6 @@ const ModalContainer = styled.div`
   animation: ${slideUp} 0.3s ease;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 
-  /* Gen-Z 스타일 border */
   &::before {
     content: "";
     position: absolute;
@@ -64,16 +53,13 @@ const ModalContainer = styled.div`
     opacity: 0.3;
   }
 
-  /* 스크롤바 스타일 */
   &::-webkit-scrollbar {
     width: 8px;
   }
-
   &::-webkit-scrollbar-track {
     background: ${({ theme }) => theme.colors.bg};
     border-radius: 4px;
   }
-
   &::-webkit-scrollbar-thumb {
     background: ${({ theme }) => theme.colors.primary};
     border-radius: 4px;
@@ -127,17 +113,26 @@ const ModalBody = styled.div`
   padding: 28px;
 `;
 
-const BaseModal = ({ title, icon, children, onClose, maxWidth, hideHeader = false }) => {
+const BaseModal = ({
+  title,
+  icon,
+  closeOnOverlayClick = true, // ✅ 이미 prop 있음
+  closeOnEsc = true, // ✅ 추가(원하면 사용)
+  children,
+  onClose,
+  maxWidth,
+  hideHeader = false,
+}) => {
   // ESC 키로 모달 닫기
   useEffect(() => {
     const handleEsc = (e) => {
-      if (e.key === "Escape") {
-        onClose();
+      if (e.key === "Escape" && closeOnEsc) {
+        onClose?.();
       }
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
-  }, [onClose]);
+  }, [onClose, closeOnEsc]);
 
   // 모달 열릴 때 body 스크롤 막기
   useEffect(() => {
@@ -148,14 +143,17 @@ const BaseModal = ({ title, icon, children, onClose, maxWidth, hideHeader = fals
   }, []);
 
   const handleOverlayClick = (e) => {
+    //  오버레이(바깥) 클릭 닫기 허용일 때만 닫기
+    if (!closeOnOverlayClick) return;
+
     if (e.target === e.currentTarget) {
-      onClose();
+      onClose?.();
     }
   };
 
   return (
     <Overlay onClick={handleOverlayClick}>
-      <ModalContainer $maxWidth={maxWidth}>
+      <ModalContainer $maxWidth={maxWidth} onClick={(e) => e.stopPropagation()}>
         {!hideHeader && (
           <ModalHeader>
             <ModalTitle>

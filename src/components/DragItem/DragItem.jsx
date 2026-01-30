@@ -4,7 +4,73 @@ import { FaMusic, FaPlay, FaLink, FaUser } from "react-icons/fa";
 import useUniverseStore from "../../store/useUniverseStore";
 import * as S from "./DragItem.style";
 
-const DraggableItem = ({ widget, isSelected, isPreviewMode, onSelect }) => {
+// 도형 렌더러
+const ShapeRenderer = ({ shapeType, fillColor, strokeColor, strokeWidth, glow, glowColor }) => {
+  const style = {
+    width: "100%",
+    height: "100%",
+    filter: glow ? `drop-shadow(0 0 10px ${glowColor || fillColor})` : "none",
+  };
+
+  switch (shapeType) {
+    case "circle":
+      return (
+        <svg viewBox="0 0 100 100" style={style}>
+          <circle cx="50" cy="50" r="45" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} />
+        </svg>
+      );
+    case "square":
+      return (
+        <svg viewBox="0 0 100 100" style={style}>
+          <rect x="5" y="5" width="90" height="90" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} />
+        </svg>
+      );
+    case "rounded":
+      return (
+        <svg viewBox="0 0 100 100" style={style}>
+          <rect x="5" y="5" width="90" height="90" rx="15" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} />
+        </svg>
+      );
+    case "triangle":
+      return (
+        <svg viewBox="0 0 100 100" style={style}>
+          <polygon points="50,5 95,95 5,95" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} />
+        </svg>
+      );
+    case "star":
+      return (
+        <svg viewBox="0 0 100 100" style={style}>
+          <polygon points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} />
+        </svg>
+      );
+    case "heart":
+      return (
+        <svg viewBox="0 0 100 100" style={style}>
+          <path d="M50,88 C20,60 5,40 5,25 C5,10 20,5 35,5 C45,5 50,15 50,15 C50,15 55,5 65,5 C80,5 95,10 95,25 C95,40 80,60 50,88Z" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} />
+        </svg>
+      );
+    case "hexagon":
+      return (
+        <svg viewBox="0 0 100 100" style={style}>
+          <polygon points="50,5 93,27 93,73 50,95 7,73 7,27" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} />
+        </svg>
+      );
+    case "diamond":
+      return (
+        <svg viewBox="0 0 100 100" style={style}>
+          <polygon points="50,5 95,50 50,95 5,50" fill={fillColor} stroke={strokeColor} strokeWidth={strokeWidth} />
+        </svg>
+      );
+    default:
+      return (
+        <svg viewBox="0 0 100 100" style={style}>
+          <circle cx="50" cy="50" r="45" fill={fillColor} />
+        </svg>
+      );
+  }
+};
+
+const DraggableItem = ({ widget, isSelected, isPreviewMode, onSelect, onUpdate, onUpdateData }) => {
   const { updateWidget, saveToHistory } = useUniverseStore();
 
   const handleDragStop = (e, d) => {
@@ -28,7 +94,7 @@ const DraggableItem = ({ widget, isSelected, isPreviewMode, onSelect }) => {
   const renderWidgetContent = () => {
     const opacity = widget.data?.opacity ?? 1;
     const rotation = widget.data?.rotation || 0;
-    const baseStyle = { opacity, transform: `rotate(${rotation}deg)` };
+    const baseStyle = { opacity, transform: `rotate(${rotation}deg)`, width: "100%", height: "100%" };
 
     switch (widget.type) {
       case "TEXT":
@@ -37,7 +103,9 @@ const DraggableItem = ({ widget, isSelected, isPreviewMode, onSelect }) => {
             $fontSize={widget.data?.fontSize || 24}
             $fontWeight={widget.data?.fontWeight || "bold"}
             $color={widget.data?.color || "#ffffff"}
-            $textAlign={widget.data?.textAlign || "left"}
+            $textAlign={widget.data?.textAlign || "center"}
+            $bgColor={widget.data?.backgroundColor || "transparent"}
+            $padding={widget.data?.padding || 12}
             style={baseStyle}
           >
             {widget.data?.text || "텍스트를 입력하세요"}
@@ -48,6 +116,7 @@ const DraggableItem = ({ widget, isSelected, isPreviewMode, onSelect }) => {
         return (
           <S.ImageWidget
             $borderRadius={widget.data?.borderRadius || 12}
+            $shadow={widget.data?.shadow}
             style={baseStyle}
           >
             {widget.data?.url ? (
@@ -58,7 +127,7 @@ const DraggableItem = ({ widget, isSelected, isPreviewMode, onSelect }) => {
               />
             ) : (
               <S.ImagePlaceholder>
-                <span>이미지 URL을 입력하세요</span>
+                <span>🖼️ 이미지 URL 입력</span>
               </S.ImagePlaceholder>
             )}
           </S.ImageWidget>
@@ -66,15 +135,49 @@ const DraggableItem = ({ widget, isSelected, isPreviewMode, onSelect }) => {
 
       case "STICKER":
         return (
-          <S.StickerWidget style={baseStyle}>
+          <S.StickerWidget $animation={widget.data?.animation} style={baseStyle}>
             {widget.data?.icon || "✨"}
           </S.StickerWidget>
         );
 
+      case "SHAPE":
+        return (
+          <S.ShapeWidget style={baseStyle}>
+            <ShapeRenderer
+              shapeType={widget.data?.shapeType || "circle"}
+              fillColor={widget.data?.fillColor || "#ff0080"}
+              strokeColor={widget.data?.strokeColor || "transparent"}
+              strokeWidth={widget.data?.strokeWidth || 0}
+              glow={widget.data?.glow}
+              glowColor={widget.data?.glowColor}
+            />
+          </S.ShapeWidget>
+        );
+
+      case "MUSIC":
+        return (
+          <S.MusicWidget style={baseStyle}>
+            <S.MusicCover $style={widget.data?.style}>
+              {widget.data?.coverUrl ? (
+                <img src={widget.data.coverUrl} alt="" />
+              ) : (
+                <FaMusic />
+              )}
+            </S.MusicCover>
+            <S.MusicInfo>
+              <S.MusicTitle>{widget.data?.title || "노래 제목"}</S.MusicTitle>
+              <S.MusicArtist>{widget.data?.artist || "아티스트"}</S.MusicArtist>
+            </S.MusicInfo>
+            {widget.data?.showPlayButton !== false && (
+              <S.MusicPlayBtn><FaPlay /></S.MusicPlayBtn>
+            )}
+          </S.MusicWidget>
+        );
+
       case "PLAYLIST":
         return (
-          <S.PlaylistWidget style={baseStyle}>
-            <S.PlaylistCover>
+          <S.PlaylistWidget $style={widget.data?.style} style={baseStyle}>
+            <S.PlaylistCover $style={widget.data?.style}>
               {widget.data?.coverUrl ? (
                 <img src={widget.data.coverUrl} alt="" />
               ) : (
@@ -82,16 +185,15 @@ const DraggableItem = ({ widget, isSelected, isPreviewMode, onSelect }) => {
               )}
             </S.PlaylistCover>
             <S.PlaylistInfo>
-              <S.PlaylistTitle>
-                {widget.data?.title || "플레이리스트"}
-              </S.PlaylistTitle>
-              <S.PlaylistArtist>
-                {widget.data?.artist || "아티스트"}
-              </S.PlaylistArtist>
+              <S.PlaylistTitle>{widget.data?.title || "플레이리스트"}</S.PlaylistTitle>
+              <S.PlaylistMeta>
+                {widget.data?.creator && <span>{widget.data.creator}</span>}
+                {widget.data?.showTrackCount !== false && widget.data?.trackCount && (
+                  <span>{widget.data.trackCount}곡</span>
+                )}
+              </S.PlaylistMeta>
             </S.PlaylistInfo>
-            <S.PlayButton>
-              <FaPlay />
-            </S.PlayButton>
+            <S.PlayButton><FaPlay /></S.PlayButton>
           </S.PlaylistWidget>
         );
 
@@ -107,7 +209,7 @@ const DraggableItem = ({ widget, isSelected, isPreviewMode, onSelect }) => {
               />
             ) : (
               <S.VideoPlaceholder>
-                <span>VIDEO</span>
+                <span>🎬 VIDEO</span>
               </S.VideoPlaceholder>
             )}
           </S.VideoWidget>
@@ -116,9 +218,7 @@ const DraggableItem = ({ widget, isSelected, isPreviewMode, onSelect }) => {
       case "LINK":
         return (
           <S.LinkWidget style={baseStyle}>
-            <S.LinkIcon>
-              <FaLink />
-            </S.LinkIcon>
+            <S.LinkIcon><FaLink /></S.LinkIcon>
             <S.LinkContent>
               <S.LinkTitle>{widget.data?.title || "링크"}</S.LinkTitle>
               <S.LinkUrl>{widget.data?.url || "URL을 입력하세요"}</S.LinkUrl>
@@ -142,11 +242,11 @@ const DraggableItem = ({ widget, isSelected, isPreviewMode, onSelect }) => {
         );
 
       default:
-        return null;
+        return <div style={{ ...baseStyle, background: "#333", borderRadius: 8 }} />;
     }
   };
 
-  // 미리보기 모드에서는 드래그 비활성화
+  // 미리보기 모드
   if (isPreviewMode) {
     return (
       <S.PreviewContainer
@@ -184,9 +284,7 @@ const DraggableItem = ({ widget, isSelected, isPreviewMode, onSelect }) => {
         }}
       >
         {renderWidgetContent()}
-        {widget.data?.locked && (
-          <S.LockedBadge>🔒</S.LockedBadge>
-        )}
+        {widget.data?.locked && <S.LockedBadge>🔒</S.LockedBadge>}
       </S.ItemContainer>
     </Rnd>
   );

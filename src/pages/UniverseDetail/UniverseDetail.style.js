@@ -5,6 +5,21 @@ const float = keyframes`
   50% { transform: translateY(-5px); }
 `;
 
+const bounce = keyframes`
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+`;
+
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
+
 const fadeIn = keyframes`
   from { opacity: 0; }
   to { opacity: 1; }
@@ -177,17 +192,147 @@ export const ImageWidget = styled.div`
   }
 `;
 
+const getAnimationStyle = (animation) => {
+  switch (animation) {
+    case "bounce":
+      return `animation: ${bounce} 1s ease-in-out infinite;`;
+    case "pulse":
+      return `animation: ${pulse} 1.5s ease-in-out infinite;`;
+    case "spin":
+      return `animation: ${spin} 3s linear infinite;`;
+    case "float":
+      return `animation: ${float} 2s ease-in-out infinite;`;
+    default:
+      return `animation: ${float} 3s ease-in-out infinite;`;
+  }
+};
+
 export const StickerWidget = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  animation: ${float} 3s ease-in-out infinite;
+  ${({ $animation }) => getAnimationStyle($animation)}
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
   transition: all 0.2s ease;
 
   &:hover {
     transform: scale(1.2);
+  }
+`;
+
+// 도형 위젯
+export const ShapeWidget = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: all 0.3s ease;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  &:hover {
+    transform: scale(1.05);
+  }
+`;
+
+// 음악 위젯
+export const MusicWidget = styled.div`
+  background: ${({ theme }) => theme.colors.surface}ee;
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px ${({ theme }) => theme.colors.primary}30;
+  }
+`;
+
+export const MusicCover = styled.div`
+  width: 50px;
+  height: 50px;
+  border-radius: ${({ $style }) => ($style === "vinyl" ? "50%" : "8px")};
+  background: ${({ theme }) => theme.colors.primary}30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: 1.2rem;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  ${({ $style, theme }) =>
+    $style === "vinyl" &&
+    `
+    border: 3px solid ${theme.colors.textMuted};
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+  `}
+`;
+
+export const MusicInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+export const MusicTitle = styled.h4`
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textMain};
+  margin: 0 0 2px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const MusicArtist = styled.p`
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const MusicPlayBtn = styled.button`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: ${({ theme }) => theme.colors.gradient};
+  color: white;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+
+  svg {
+    margin-left: 2px;
+  }
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px ${({ theme }) => theme.colors.primary}60;
   }
 `;
 

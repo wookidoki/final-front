@@ -1,8 +1,23 @@
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 
 const float = keyframes`
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
+  50% { transform: translateY(-5px); }
+`;
+
+const bounce = keyframes`
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+`;
+
+const pulse = keyframes`
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+`;
+
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 `;
 
 // 위젯 컨테이너
@@ -15,25 +30,17 @@ export const ItemContainer = styled.div`
   transition: all 0.2s ease;
   overflow: hidden;
 
-  /* 선택 상태 */
-  border: 2px solid
-    ${({ $isSelected, theme }) =>
-      $isSelected ? theme.colors.primary : "transparent"};
+  border: 2px solid ${({ $isSelected, theme }) =>
+    $isSelected ? theme.colors.primary : "transparent"};
   box-shadow: ${({ $isSelected, theme }) =>
-    $isSelected
-      ? `0 0 20px ${theme.colors.primary}40`
-      : "0 4px 12px rgba(0, 0, 0, 0.15)"};
+    $isSelected ? `0 0 20px ${theme.colors.primary}40` : "0 4px 12px rgba(0, 0, 0, 0.15)"};
 
   &:hover {
     border-color: ${({ $isSelected, theme }) =>
       $isSelected ? theme.colors.primary : `${theme.colors.secondary}80`};
   }
 
-  ${({ $isLocked }) =>
-    $isLocked &&
-    `
-    opacity: 0.85;
-  `}
+  ${({ $isLocked }) => $isLocked && `opacity: 0.85;`}
 `;
 
 // 미리보기 모드 컨테이너
@@ -61,10 +68,12 @@ export const TextWidget = styled.div`
   align-items: center;
   justify-content: ${({ $textAlign }) =>
     $textAlign === "center" ? "center" : $textAlign === "right" ? "flex-end" : "flex-start"};
-  padding: 16px;
+  padding: ${({ $padding }) => $padding || 16}px;
   font-size: ${({ $fontSize }) => $fontSize}px;
   font-weight: ${({ $fontWeight }) => $fontWeight};
   color: ${({ $color }) => $color};
+  background: ${({ $bgColor }) => $bgColor || "transparent"};
+  border-radius: 12px;
   word-break: break-word;
   white-space: pre-wrap;
   user-select: none;
@@ -78,6 +87,7 @@ export const ImageWidget = styled.div`
   border-radius: ${({ $borderRadius }) => $borderRadius}px;
   overflow: hidden;
   user-select: none;
+  box-shadow: ${({ $shadow }) => $shadow ? "0 8px 30px rgba(0, 0, 0, 0.3)" : "none"};
 
   img {
     width: 100%;
@@ -99,11 +109,19 @@ export const ImagePlaceholder = styled.div`
 
   span {
     color: ${({ theme }) => theme.colors.textMuted};
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
 `;
 
 // 스티커 위젯
+const stickerAnimation = {
+  none: css``,
+  bounce: css`animation: ${bounce} 1s ease-in-out infinite;`,
+  pulse: css`animation: ${pulse} 1.5s ease-in-out infinite;`,
+  spin: css`animation: ${spin} 3s linear infinite;`,
+  float: css`animation: ${float} 2s ease-in-out infinite;`,
+};
+
 export const StickerWidget = styled.div`
   width: 100%;
   height: 100%;
@@ -112,8 +130,112 @@ export const StickerWidget = styled.div`
   justify-content: center;
   font-size: 3.5rem;
   user-select: none;
-  animation: ${float} 3s ease-in-out infinite;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  ${({ $animation }) => stickerAnimation[$animation || "float"]}
+`;
+
+// 도형 위젯
+export const ShapeWidget = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+`;
+
+// 음악 위젯
+export const MusicWidget = styled.div`
+  width: 100%;
+  height: 100%;
+  background: ${({ theme }) => theme.colors.surface};
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  user-select: none;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+export const MusicCover = styled.div`
+  width: 50px;
+  height: 50px;
+  border-radius: ${({ $style }) => $style === "vinyl" ? "50%" : "8px"};
+  background: ${({ theme }) => theme.colors.primary}30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: 1.2rem;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  ${({ $style }) => $style === "vinyl" && css`
+    border: 3px solid ${({ theme }) => theme.colors.textMuted};
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+  `}
+`;
+
+export const MusicInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+export const MusicTitle = styled.h4`
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textMain};
+  margin: 0 0 2px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const MusicArtist = styled.p`
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const MusicPlayBtn = styled.button`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: ${({ theme }) => theme.colors.gradient};
+  color: white;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+
+  svg {
+    margin-left: 2px;
+  }
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px ${({ theme }) => theme.colors.primary}60;
+  }
 `;
 
 // 플레이리스트 위젯
@@ -122,18 +244,30 @@ export const PlaylistWidget = styled.div`
   height: 100%;
   background: ${({ theme }) => theme.colors.surface};
   border-radius: 12px;
-  padding: 16px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 14px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   user-select: none;
   border: 1px solid ${({ theme }) => theme.colors.border};
+
+  ${({ $style }) => $style === "compact" && css`
+    padding: 10px 12px;
+    gap: 10px;
+  `}
+
+  ${({ $style }) => $style === "minimal" && css`
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 8px;
+  `}
 `;
 
 export const PlaylistCover = styled.div`
-  width: 56px;
-  height: 56px;
+  width: ${({ $style }) => $style === "compact" ? "44px" : "56px"};
+  height: ${({ $style }) => $style === "compact" ? "44px" : "56px"};
   border-radius: 10px;
   background: ${({ theme }) => theme.colors.primary}30;
   display: flex;
@@ -175,6 +309,25 @@ export const PlaylistArtist = styled.p`
   white-space: nowrap;
 `;
 
+export const PlaylistMeta = styled.div`
+  display: flex;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+
+  span {
+    &::after {
+      content: "·";
+      margin-left: 8px;
+    }
+
+    &:last-child::after {
+      content: "";
+      margin-left: 0;
+    }
+  }
+`;
+
 export const PlayButton = styled.button`
   width: 40px;
   height: 40px;
@@ -189,6 +342,10 @@ export const PlayButton = styled.button`
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.2s ease;
+
+  svg {
+    margin-left: 2px;
+  }
 
   &:hover {
     transform: scale(1.1);
@@ -224,7 +381,7 @@ export const VideoPlaceholder = styled.div`
   span {
     font-size: 1.2rem;
     font-weight: 700;
-    opacity: 0.5;
+    opacity: 0.6;
   }
 `;
 

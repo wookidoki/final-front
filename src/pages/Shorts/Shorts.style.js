@@ -81,3 +81,32 @@ export const ViewerContent = styled.div`
     height: 100vh;
   }
 `;
+
+export const UploadButton = styled.button`
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #ff0050; /* 포인트 컬러 (예: 틱톡 레드) */
+  color: white;
+  border: none;
+  font-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 100; /* 콘텐츠 위에 떠있어야 함 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+    background-color: #e60045;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+`;
