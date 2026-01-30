@@ -309,8 +309,7 @@ const Profile = () => {
                       <FaGlobe />
                     )}
                     <span>
-                      {comment.targetType === "SHORTFORM" ? "숏폼" : "유니버스"}{" "}
-                      #{comment.targetId}
+                      {comment.shortFormTitle || `숏폼 #${comment.targetId}`}
                     </span>
                     에 남긴 댓글
                   </S.CommentTarget>
