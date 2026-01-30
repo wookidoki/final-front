@@ -107,6 +107,28 @@ export const NavButton = styled.button`
   }
 `;
 
+export const EditButton = styled.button`
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 22px;
+  background: ${({ theme }) => theme.colors.gradient};
+  border: none;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px ${({ theme }) => theme.colors.primary}40;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px ${({ theme }) => theme.colors.primary}60;
+  }
+`;
+
 // 유니버스 캔버스
 export const UniverseCanvas = styled.div`
   width: 100%;

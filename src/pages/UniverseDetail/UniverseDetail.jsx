@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   FaArrowLeft,
@@ -14,8 +14,12 @@ import {
   FaLink,
   FaExpand,
   FaCompress,
+  FaEdit,
+  FaSignInAlt,
 } from "react-icons/fa";
 import * as S from "./UniverseDetail.style";
+import { AuthContext } from "../../context/Authcontext";
+import useModalStore from "../../store/useModalStore";
 
 // 더미 유니버스 데이터 (실제로는 API에서 불러옴)
 const universeDetailData = {
@@ -28,6 +32,7 @@ const universeDetailData = {
     avatar: "N",
     followers: 1250,
   },
+  isOwner: true,
   likes: 2340,
   views: 12500,
   bookmarks: 890,
@@ -42,7 +47,7 @@ const universeDetailData = {
       id: "w1",
       type: "TEXT",
       x: 80,
-      y: 60,
+      y: 50,
       width: 400,
       height: 80,
       zIndex: 1,
@@ -51,6 +56,7 @@ const universeDetailData = {
         fontSize: 32,
         fontWeight: "bold",
         color: "#ffffff",
+        textAlign: "left",
         opacity: 1,
       },
     },
@@ -58,49 +64,107 @@ const universeDetailData = {
       id: "w2",
       type: "IMAGE",
       x: 80,
-      y: 160,
+      y: 150,
       width: 350,
-      height: 250,
+      height: 220,
       zIndex: 2,
       data: {
         url: "https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=400&h=300&fit=crop",
         borderRadius: 16,
+        shadow: true,
         opacity: 1,
       },
     },
     {
       id: "w3",
-      type: "PLAYLIST",
-      x: 500,
-      y: 180,
-      width: 280,
-      height: 100,
+      type: "MUSIC",
+      x: 480,
+      y: 150,
+      width: 300,
+      height: 80,
       zIndex: 3,
       data: {
         title: "Midnight City",
         artist: "M83",
         coverUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop",
+        style: "default",
+        showPlayButton: true,
+        opacity: 1,
+      },
+    },
+    {
+      id: "w8",
+      type: "PLAYLIST",
+      x: 480,
+      y: 260,
+      width: 300,
+      height: 100,
+      zIndex: 8,
+      data: {
+        title: "Midnight Vibes",
+        creator: "NightOwl",
+        trackCount: 24,
+        coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=100&h=100&fit=crop",
+        showTrackCount: true,
+        style: "card",
         opacity: 1,
       },
     },
     {
       id: "w4",
       type: "STICKER",
-      x: 600,
-      y: 80,
+      x: 620,
+      y: 60,
       width: 70,
       height: 70,
       zIndex: 4,
       data: {
         icon: "🌙",
+        animation: "float",
         opacity: 1,
+      },
+    },
+    {
+      id: "w9",
+      type: "SHAPE",
+      x: 50,
+      y: 400,
+      width: 100,
+      height: 100,
+      zIndex: 9,
+      data: {
+        shapeType: "heart",
+        fillColor: "#ff0080",
+        strokeColor: "transparent",
+        strokeWidth: 0,
+        glow: true,
+        glowColor: "#ff0080",
+        opacity: 0.8,
+      },
+    },
+    {
+      id: "w10",
+      type: "SHAPE",
+      x: 700,
+      y: 420,
+      width: 80,
+      height: 80,
+      zIndex: 10,
+      data: {
+        shapeType: "star",
+        fillColor: "#ffd93d",
+        strokeColor: "transparent",
+        strokeWidth: 0,
+        glow: true,
+        glowColor: "#ffd93d",
+        opacity: 0.7,
       },
     },
     {
       id: "w5",
       type: "TEXT",
-      x: 100,
-      y: 450,
+      x: 180,
+      y: 420,
       width: 320,
       height: 60,
       zIndex: 5,
@@ -108,34 +172,53 @@ const universeDetailData = {
         text: "새벽 감성 가득한 공간 🌃\n힙한 음악과 함께해요",
         fontSize: 16,
         color: "#cccccc",
+        textAlign: "center",
         opacity: 0.9,
-      },
-    },
-    {
-      id: "w6",
-      type: "IMAGE",
-      x: 480,
-      y: 320,
-      width: 280,
-      height: 180,
-      zIndex: 6,
-      data: {
-        url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&h=200&fit=crop",
-        borderRadius: 12,
-        opacity: 1,
       },
     },
     {
       id: "w7",
       type: "STICKER",
-      x: 420,
-      y: 120,
+      x: 430,
+      y: 90,
       width: 50,
       height: 50,
       zIndex: 7,
       data: {
         icon: "✨",
+        animation: "pulse",
         opacity: 1,
+      },
+    },
+    {
+      id: "w11",
+      type: "STICKER",
+      x: 250,
+      y: 380,
+      width: 45,
+      height: 45,
+      zIndex: 11,
+      data: {
+        icon: "💜",
+        animation: "bounce",
+        opacity: 1,
+      },
+    },
+    {
+      id: "w12",
+      type: "MUSIC",
+      x: 500,
+      y: 400,
+      width: 280,
+      height: 75,
+      zIndex: 12,
+      data: {
+        title: "Blinding Lights",
+        artist: "The Weeknd",
+        coverUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=100&h=100&fit=crop",
+        style: "vinyl",
+        showPlayButton: true,
+        opacity: 0.9,
       },
     },
   ],
@@ -144,6 +227,8 @@ const universeDetailData = {
 const UniverseDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { auth } = useContext(AuthContext);
+  const { openModal } = useModalStore();
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [likeCount, setLikeCount] = useState(universeDetailData.likes);
@@ -159,11 +244,19 @@ const UniverseDetail = () => {
   };
 
   const handleLike = () => {
+    if (!auth.isAuthenticated) {
+      openModal("login");
+      return;
+    }
     setIsLiked(!isLiked);
     setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
   };
 
   const handleBookmark = () => {
+    if (!auth.isAuthenticated) {
+      openModal("login");
+      return;
+    }
     setIsBookmarked(!isBookmarked);
   };
 
@@ -388,6 +481,11 @@ const UniverseDetail = () => {
             <FaArrowLeft />
           </S.BackButton>
           <S.NavActions>
+            {auth.isAuthenticated && universeDetailData.isOwner && (
+              <S.EditButton onClick={() => navigate(`/my-universe`)}>
+                <FaEdit /> 편집
+              </S.EditButton>
+            )}
             <S.NavButton onClick={toggleFullscreen}>
               <FaExpand />
             </S.NavButton>

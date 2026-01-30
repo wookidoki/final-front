@@ -114,6 +114,211 @@ export const Content = styled.div`
   }
 `;
 
+// ===== 내 유니버스 배너 =====
+export const MyUniverseBanner = styled.div`
+  display: flex;
+  background: ${({ theme }) => theme.colors.surface};
+  border: 2px solid ${({ theme }) => theme.colors.border};
+  border-radius: 24px;
+  overflow: hidden;
+  margin-bottom: 32px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary}60;
+    box-shadow: 0 12px 40px ${({ theme }) => theme.colors.primary}20;
+  }
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+  }
+`;
+
+export const MyUniversePreview = styled.div`
+  width: 320px;
+  min-height: 200px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  @media (max-width: 900px) {
+    width: 100%;
+    min-height: 160px;
+  }
+`;
+
+export const MyUniverseOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+`;
+
+export const MyUniversePreviewContent = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const MyUniverseSticker = styled.span`
+  position: absolute;
+  font-size: 2rem;
+  animation: ${float} 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+`;
+
+export const MyUniverseInfo = styled.div`
+  flex: 1;
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  @media (max-width: 900px) {
+    padding: 20px;
+  }
+`;
+
+export const MyUniverseLabel = styled.span`
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.primary};
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+`;
+
+export const MyUniverseName = styled.h2`
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors.textMain};
+  margin-bottom: 6px;
+
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+  }
+`;
+
+export const MyUniverseDesc = styled.p`
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.colors.textSub};
+  margin-bottom: 14px;
+`;
+
+export const MyUniverseStats = styled.div`
+  display: flex;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: ${({ theme }) => theme.colors.textMuted};
+
+    svg {
+      color: ${({ theme }) => theme.colors.primary};
+      font-size: 0.75rem;
+    }
+  }
+`;
+
+export const MyUniverseActions = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+export const MyUniverseEditBtn = styled.button`
+  padding: 12px 24px;
+  border-radius: 12px;
+  background: ${({ theme }) => theme.colors.gradient};
+  border: none;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px ${({ theme }) => theme.colors.primary}50;
+  }
+`;
+
+export const MyUniverseViewBtn = styled.button`
+  padding: 12px 24px;
+  border-radius: 12px;
+  background: transparent;
+  border: 2px solid ${({ theme }) => theme.colors.border};
+  color: ${({ theme }) => theme.colors.textMain};
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+// ===== 카테고리 탭 =====
+export const CategoryTabs = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 28px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+
+  &::-webkit-scrollbar {
+    height: 0;
+  }
+`;
+
+export const CategoryTab = styled.button`
+  padding: 10px 20px;
+  border-radius: 24px;
+  background: ${({ $active, theme }) =>
+    $active ? theme.colors.gradient : theme.colors.surface};
+  border: 2px solid ${({ $active, theme }) =>
+    $active ? "transparent" : theme.colors.border};
+  color: ${({ $active, theme }) => $active ? "white" : theme.colors.textSub};
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  svg {
+    font-size: 0.85rem;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: ${({ $active, theme }) => $active ? "transparent" : theme.colors.primary};
+    color: ${({ $active, theme }) => $active ? "white" : theme.colors.primary};
+  }
+`;
+
 export const FilterSection = styled.div`
   display: flex;
   justify-content: space-between;

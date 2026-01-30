@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaEnvelope,
@@ -10,9 +10,12 @@ import {
 } from "react-icons/fa";
 import { SiNaver } from "react-icons/si";
 import * as S from "./Login.style";
+import api from "../../services/Axios/Axios";
+import { AuthContext } from "../../context/Authcontext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { setAuth } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -51,23 +54,43 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      // TODO: API 연동
-      // const response = await fetch('/api/members/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
+      const requestData = {
+        memberDto: {
+          email: formData.email,
+        },
+        password: formData.password,
+      };
 
-      console.log("로그인 시도:", formData);
+      const response = await api.post("/api/members/login", requestData);
 
-      // 임시로 성공 처리
-      setTimeout(() => {
+      if (response.data && response.data.status === 200) {
+        const { accessToken, refreshToken, memberId, role, email } = response.data.data;
+
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+        localStorage.setItem("memberId", memberId);
+        localStorage.setItem("role", role);
+        localStorage.setItem("email", email || formData.email);
+
+        setAuth({
+          memberId,
+          email: email || formData.email,
+          accesstoken: accessToken,
+          refreshtoken: refreshToken,
+          role,
+          isAuthenticated: true,
+        });
+
         setIsLoading(false);
         navigate("/");
-      }, 1000);
-    } catch (error) {
+      }
+    } catch (err) {
       setIsLoading(false);
-      setErrors({ general: "로그인에 실패했습니다. 다시 시도해주세요." });
+      if (err.response && err.response.status === 401) {
+        setErrors({ general: "이메일 또는 비밀번호가 일치하지 않습니다." });
+      } else {
+        setErrors({ general: err.response?.data?.message || "로그인에 실패했습니다. 다시 시도해주세요." });
+      }
     }
   };
 

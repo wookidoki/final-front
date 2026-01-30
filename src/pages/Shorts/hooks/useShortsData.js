@@ -4,8 +4,9 @@ import axiosInstance from "../../../services/Axios/Axios";
 /**
  * 숏폼 데이터 로딩 훅
  * @param {string} keyword - 검색 키워드 (빈 문자열이면 전체 목록)
+ * @param {string} customEndpoint - (선택) 특정 API 주소 (예: /api/shortforms/me)
  */
-const useShortsData = (keyword = "") => {
+const useShortsData = (keyword = "", customEndpoint = null) => {
   const [shorts, setShorts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasNext, setHasNext] = useState(true);
@@ -13,12 +14,12 @@ const useShortsData = (keyword = "") => {
   const [likedVideos, setLikedVideos] = useState(new Set());
   const observer = useRef();
 
-  // 키워드 변경 시 리셋
+  // 키워드나 엔드포인트가 바뀌면 목록 리셋
   useEffect(() => {
     setShorts([]);
     setNextCursorId(null);
     setHasNext(true);
-  }, [keyword]);
+  }, [keyword, customEndpoint]);
 
   // 숏폼 데이터 로드
   const fetchShorts = useCallback(
@@ -30,14 +31,15 @@ const useShortsData = (keyword = "") => {
         const params = { size: 10, sort: "latest" };
         if (cursorId) params.lastShortFormId = cursorId;
 
-        let endpoint = "/api/shortforms";
-        if (keyword && keyword.trim() !== "") {
-          endpoint = "api/shortforms";
+        let targetUrl = customEndpoint || "/api/shortforms";
+
+        if (!customEndpoint && keyword && keyword.trim() !== "") {
+          targetUrl = "/api/shortforms/search";
           params.keyword = keyword;
           params.condition = "all";
         }
 
-        const response = await axiosInstance.get(endpoint, { params });
+        const response = await axiosInstance.get(targetUrl, { params });
         const resultData = response.data.data;
         const newShorts = resultData.content || [];
         const pagination = resultData.pagination || {};
@@ -67,14 +69,13 @@ const useShortsData = (keyword = "") => {
         setLoading(false);
       }
     },
-    [keyword, loading],
+    [keyword, customEndpoint, loading],
   );
 
   // 초기 로드
   useEffect(() => {
     fetchShorts(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyword]);
+  }, [keyword, customEndpoint]);
 
   // 다음 페이지 로드
   const loadMore = useCallback(() => {
@@ -83,7 +84,7 @@ const useShortsData = (keyword = "") => {
     }
   }, [hasNext, loading, nextCursorId, fetchShorts]);
 
-  // 무한 스크롤을 위한 ref 콜백
+  // 무한 스크롤
   const lastElementRef = useCallback(
     (node) => {
       if (loading) return;
@@ -115,7 +116,7 @@ const useShortsData = (keyword = "") => {
         return newSet;
       });
 
-      // 숏폼 목록에서 좋아요 수 업데이트
+      // 숏폼 목록 업데이트
       setShorts((prev) =>
         prev.map((short) =>
           short.shortFormId === shortFormId
@@ -131,13 +132,12 @@ const useShortsData = (keyword = "") => {
 
       try {
         if (isLiked) {
-          await axiosInstance.delete(`/shortforms/${shortFormId}/like`);
+          await axiosInstance.delete(`/api/shortforms/${shortFormId}/like`);
         } else {
-          await axiosInstance.post(`/shortforms/${shortFormId}/like`);
+          await axiosInstance.post(`/api/shortforms/${shortFormId}/like`);
         }
       } catch (error) {
         console.error("좋아요 처리 실패:", error);
-        // 실패 시 롤백
         setLikedVideos((prev) => {
           const newSet = new Set(prev);
           if (isLiked) newSet.add(shortFormId);
@@ -149,7 +149,6 @@ const useShortsData = (keyword = "") => {
     [likedVideos],
   );
 
-  // 좋아요 상태 확인
   const isLiked = useCallback(
     (shortFormId) => likedVideos.has(shortFormId),
     [likedVideos],

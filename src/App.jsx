@@ -11,6 +11,7 @@ import ErrorBoundary from "./components/common/ErrorBoundary";
 import Toast from "./components/common/Toast";
 import ModalManager from "./components/Modal/ModalManager";
 import LoadingPage from "./pages/LoadingPage/LoadingPage";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 // Layout (즉시 로드)
 import Layout from "./components/Layout/Layout";
@@ -103,16 +104,16 @@ function App() {
                       {/* 메인 홈 */}
                       <Route path="/" element={<Home />} />
 
-                      {/* 1. 내 홈페이지 (View Mode) */}
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/profile/edit" element={<ProfileEdit />} />
+                      {/* 1. 내 홈페이지 (View Mode) - 로그인 필요 */}
+                      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                      <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
 
-                      {/* 2. 편집 페이지  - '마이 유니버스' */}
-                      <Route path="/my-universe" element={<MyCanvas />} />
+                      {/* 2. 편집 페이지  - '마이 유니버스' - 로그인 필요 */}
+                      <Route path="/my-universe" element={<ProtectedRoute><MyCanvas /></ProtectedRoute>} />
 
                       {/* 숏폼 페이지 */}
                       <Route path="/shorts" element={<Shorts />} />
-                      <Route path="/shorts/upload" element={<ShortsUpload />} />
+                      <Route path="/shorts/upload" element={<ProtectedRoute><ShortsUpload /></ProtectedRoute>} />
 
                       {/* 유니버스 페이지 */}
                       <Route path="/universe" element={<Universe />} />
@@ -127,14 +128,14 @@ function App() {
                       {/* 공지사항 */}
                       <Route path="/notice" element={<Notice />} />
 
-                      {/* 채팅 */}
-                      <Route path="/chat" element={<Chat />} />
+                      {/* 채팅 - 로그인 필요 */}
+                      <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
 
-                      {/* 결제 */}
-                      <Route path="/payment" element={<Payment />} />
+                      {/* 결제 - 로그인 필요 */}
+                      <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
 
-                      {/* 매칭 */}
-                      <Route path="/matching" element={<Matching />} />
+                      {/* 매칭 - 로그인 필요 */}
+                      <Route path="/matching" element={<ProtectedRoute><Matching /></ProtectedRoute>} />
 
                       {/* 스타일 가이드 */}
                       <Route path="/style-guide" element={<StyleGuide />} />
@@ -143,10 +144,10 @@ function App() {
                       {/* 검색 결과 페이지 */}
                       <Route path="/search-results" element={<SearchResultPage />} />
 
-                      {/* 관리자 페이지 */}
-                      <Route path="/admin" element={<AdminDashboard />} />
-                      <Route path="/admin/members" element={<AdminMembers />} />
-                      <Route path="/admin/notices" element={<AdminNotices />} />
+                      {/* 관리자 페이지 - 로그인 필요 */}
+                      <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+                      <Route path="/admin/members" element={<ProtectedRoute><AdminMembers /></ProtectedRoute>} />
+                      <Route path="/admin/notices" element={<ProtectedRoute><AdminNotices /></ProtectedRoute>} />
 
                       {/* 404 페이지 */}
                       <Route path="*" element={<NotFound />} />

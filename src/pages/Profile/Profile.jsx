@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaPen,
@@ -9,112 +9,125 @@ import {
   FaBookmark,
   FaComment,
   FaEye,
-  FaPlay,
 } from "react-icons/fa";
 import * as S from "./Profile.style";
-
-// 더미 데이터
-const myShortformsData = [
-  {
-    id: 1,
-    title: "NewJeans - Super Shy 커버 🐰",
-    thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop",
-    likes: 1250,
-    views: 5600,
-    createdAt: "3일 전",
-  },
-  {
-    id: 2,
-    title: "aespa - Spicy Dance",
-    thumbnail: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=600&fit=crop",
-    likes: 890,
-    views: 3200,
-    createdAt: "1주 전",
-  },
-];
-
-const myUniversesData = [
-  {
-    id: 1,
-    title: "Midnight Vibes Space 🌙",
-    thumbnail: "https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=600&h=400&fit=crop",
-    likes: 340,
-    views: 1500,
-    createdAt: "2일 전",
-  },
-];
-
-const likedShortformsData = [
-  {
-    id: 3,
-    title: "IVE - I AM Cover",
-    thumbnail: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=600&fit=crop",
-    likes: 2100,
-    views: 8900,
-    creator: "DancerKim",
-  },
-  {
-    id: 4,
-    title: "LE SSERAFIM - UNFORGIVEN",
-    thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=600&fit=crop",
-    likes: 3500,
-    views: 15000,
-    creator: "KpopDancer",
-  },
-];
-
-const bookmarkedUniversesData = [
-  {
-    id: 2,
-    title: "K-Pop Aesthetic Space ✨",
-    thumbnail: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&h=400&fit=crop",
-    likes: 5670,
-    creator: "KpopStan",
-  },
-  {
-    id: 3,
-    title: "Lo-Fi Study Room 📚",
-    thumbnail: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&h=400&fit=crop",
-    likes: 3450,
-    creator: "StudyWithMe",
-  },
-];
-
-const myCommentsData = [
-  {
-    id: 1,
-    targetType: "SHORTFORM",
-    targetTitle: "NewJeans - Super Shy 커버",
-    content: "와 진짜 춤 너무 잘 추신다!! 저도 배우고 싶어요 🔥",
-    createdAt: "2시간 전",
-  },
-  {
-    id: 2,
-    targetType: "SHORTFORM",
-    targetTitle: "aespa - Spicy Dance",
-    content: "에스파 느낌 제대로네요 ㅋㅋ",
-    createdAt: "1일 전",
-  },
-  {
-    id: 3,
-    targetType: "SHORTFORM",
-    targetTitle: "IVE - I AM Cover",
-    content: "퀄리티 미쳤다... 프로 아니세요?",
-    createdAt: "3일 전",
-  },
-];
-
-const TABS = [
-  { id: "myShortforms", label: "내 숏폼", icon: FaVideo, count: 2 },
-  { id: "myUniverses", label: "내 유니버스", icon: FaGlobe, count: 1 },
-  { id: "likedShortforms", label: "좋아요한 숏폼", icon: FaHeart, count: 2 },
-  { id: "bookmarkedUniverses", label: "찜한 유니버스", icon: FaBookmark, count: 2 },
-  { id: "myComments", label: "내 댓글", icon: FaComment, count: 3 },
-];
+import useShortsData from "../Shorts/hooks/useShortsData";
+import axiosInstance from "../../services/Axios/Axios";
+import { AuthContext } from "../../context/Authcontext";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { auth } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("myShortforms");
+
+  // --- 내 숏폼 (GET /api/shortforms/me) ---
+  const { shorts: myShorts, loading: shortsLoading } = useShortsData(
+    "",
+    "/api/shortforms/me",
+  );
+
+  // --- 좋아요한 숏폼 (GET /api/shortforms/me/likes) ---
+  const { shorts: likedShorts, loading: likedShortsLoading } = useShortsData(
+    "",
+    "/api/shortforms/me/likes",
+  );
+
+  // --- 찜한 유니버스 (GET /api/universes/me/bookmarks) ---
+  const [bookmarkedUniverses, setBookmarkedUniverses] = useState([]);
+  const [bookmarkedLoading, setBookmarkedLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchBookmarkedUniverses = async () => {
+      try {
+        setBookmarkedLoading(true);
+        const response = await axiosInstance.get(
+          "/api/universes/me/bookmarks",
+          {
+            params: { size: 20 },
+          },
+        );
+        const data = response.data?.data;
+        setBookmarkedUniverses(data?.content || []);
+      } catch (error) {
+        console.error("찜한 유니버스 로딩 실패:", error);
+      } finally {
+        setBookmarkedLoading(false);
+      }
+    };
+    if (auth.isAuthenticated) fetchBookmarkedUniverses();
+  }, [auth.isAuthenticated]);
+
+  // --- 내 댓글 (GET /api/shortforms/me/comments) ---
+  const [myComments, setMyComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchMyComments = async () => {
+      try {
+        setCommentsLoading(true);
+        const response = await axiosInstance.get(
+          "/api/shortforms/me/comments",
+          {
+            params: { size: 20 },
+          },
+        );
+        const data = response.data?.data;
+        setMyComments(data?.content || []);
+      } catch (error) {
+        console.error("내 댓글 로딩 실패:", error);
+      } finally {
+        setCommentsLoading(false);
+      }
+    };
+    if (auth.isAuthenticated) fetchMyComments();
+  }, [auth.isAuthenticated]);
+
+  // --- 유틸 함수 ---
+  const getInitials = () => {
+    if (auth.memberName) return auth.memberName.substring(0, 2).toUpperCase();
+    if (auth.email) return auth.email.substring(0, 2).toUpperCase();
+    return "GZ";
+  };
+
+  const getDisplayName = () => {
+    if (auth.memberName) return auth.memberName;
+    if (auth.email) return auth.email.split("@")[0];
+    return "User";
+  };
+
+  // --- 탭 목록 ---
+  const TABS = [
+    {
+      id: "myShortforms",
+      label: "내 숏폼",
+      icon: FaVideo,
+      count: myShorts.length,
+    },
+    {
+      id: "myUniverses",
+      label: "내 유니버스",
+      icon: FaGlobe,
+      count: "-",
+    },
+    {
+      id: "likedShortforms",
+      label: "좋아요한 숏폼",
+      icon: FaHeart,
+      count: likedShorts.length,
+    },
+    {
+      id: "bookmarkedUniverses",
+      label: "찜한 유니버스",
+      icon: FaBookmark,
+      count: bookmarkedUniverses.length,
+    },
+    {
+      id: "myComments",
+      label: "내 댓글",
+      icon: FaComment,
+      count: myComments.length,
+    },
+  ];
 
   const handleCardClick = (type, id) => {
     if (type === "shortform") {
@@ -124,23 +137,37 @@ const Profile = () => {
     }
   };
 
+  // --- 로딩 컴포넌트 ---
+  const renderLoading = () => (
+    <S.EmptyState>
+      <S.EmptyTitle>로딩 중...</S.EmptyTitle>
+    </S.EmptyState>
+  );
+
+  // --- 탭 콘텐츠 렌더링 ---
   const renderTabContent = () => {
     switch (activeTab) {
       case "myShortforms":
-        return myShortformsData.length > 0 ? (
+        if (shortsLoading && myShorts.length === 0) return renderLoading();
+
+        return myShorts.length > 0 ? (
           <S.ContentGrid>
-            {myShortformsData.map((item) => (
-              <S.ContentCard key={item.id} onClick={() => handleCardClick("shortform", item.id)}>
+            {myShorts.map((item) => (
+              <S.ContentCard
+                key={item.shortFormId}
+                onClick={() => handleCardClick("shortform", item.shortFormId)}
+              >
                 <S.CardThumbnail $ratio="9 / 16">
-                  <img src={item.thumbnail} alt={item.title} />
+                  <img src={item.thumbnailUrl} alt={item.shortFormTitle} />
                   <S.CardBadge>숏폼</S.CardBadge>
                 </S.CardThumbnail>
                 <S.CardInfo>
-                  <h3>{item.title}</h3>
-                  <p>{item.createdAt}</p>
+                  <h3>{item.shortFormTitle}</h3>
+                  <p>{new Date(item.createdAt).toLocaleDateString()}</p>
                   <S.CardStats>
-                    <S.CardStat><FaHeart /> {item.likes}</S.CardStat>
-                    <S.CardStat><FaEye /> {item.views}</S.CardStat>
+                    <S.CardStat>
+                      <FaHeart /> {item.like || 0}
+                    </S.CardStat>
                   </S.CardStats>
                 </S.CardInfo>
               </S.ContentCard>
@@ -150,54 +177,48 @@ const Profile = () => {
           <S.EmptyState>
             <S.EmptyIcon>📹</S.EmptyIcon>
             <S.EmptyTitle>아직 업로드한 숏폼이 없어요</S.EmptyTitle>
-            <S.EmptyDescription>첫 번째 숏폼을 만들어보세요!</S.EmptyDescription>
+            <S.EmptyDescription>
+              첫 번째 숏폼을 만들어보세요!
+            </S.EmptyDescription>
             <S.EmptyButton to="/shorts/upload">숏폼 만들기</S.EmptyButton>
           </S.EmptyState>
         );
 
+      // === 백엔드 API 미구현 === (고민해야함)
       case "myUniverses":
-        return myUniversesData.length > 0 ? (
-          <S.ContentGrid>
-            {myUniversesData.map((item) => (
-              <S.ContentCard key={item.id} onClick={() => handleCardClick("universe", item.id)}>
-                <S.CardThumbnail>
-                  <img src={item.thumbnail} alt={item.title} />
-                  <S.CardBadge>유니버스</S.CardBadge>
-                </S.CardThumbnail>
-                <S.CardInfo>
-                  <h3>{item.title}</h3>
-                  <p>{item.createdAt}</p>
-                  <S.CardStats>
-                    <S.CardStat><FaHeart /> {item.likes}</S.CardStat>
-                    <S.CardStat><FaEye /> {item.views}</S.CardStat>
-                  </S.CardStats>
-                </S.CardInfo>
-              </S.ContentCard>
-            ))}
-          </S.ContentGrid>
-        ) : (
+        return (
           <S.EmptyState>
             <S.EmptyIcon>🌌</S.EmptyIcon>
-            <S.EmptyTitle>아직 만든 유니버스가 없어요</S.EmptyTitle>
-            <S.EmptyDescription>나만의 유니버스를 꾸며보세요!</S.EmptyDescription>
+            <S.EmptyTitle>미구현</S.EmptyTitle>
+            <S.EmptyDescription>
+              내 유니버스 목록 API가 아직 준비되지 않았습니다.
+            </S.EmptyDescription>
             <S.EmptyButton to="/my-universe">유니버스 만들기</S.EmptyButton>
           </S.EmptyState>
         );
 
+      // 좋아요한 숏폼
       case "likedShortforms":
-        return likedShortformsData.length > 0 ? (
+        if (likedShortsLoading && likedShorts.length === 0)
+          return renderLoading();
+
+        return likedShorts.length > 0 ? (
           <S.ContentGrid>
-            {likedShortformsData.map((item) => (
-              <S.ContentCard key={item.id} onClick={() => handleCardClick("shortform", item.id)}>
+            {likedShorts.map((item) => (
+              <S.ContentCard
+                key={item.shortFormId}
+                onClick={() => handleCardClick("shortform", item.shortFormId)}
+              >
                 <S.CardThumbnail $ratio="9 / 16">
-                  <img src={item.thumbnail} alt={item.title} />
+                  <img src={item.thumbnailUrl} alt={item.shortFormTitle} />
                 </S.CardThumbnail>
                 <S.CardInfo>
-                  <h3>{item.title}</h3>
-                  <p>by {item.creator}</p>
+                  <h3>{item.shortFormTitle}</h3>
+                  <p>by {item.nickName}</p>
                   <S.CardStats>
-                    <S.CardStat><FaHeart /> {item.likes}</S.CardStat>
-                    <S.CardStat><FaEye /> {item.views}</S.CardStat>
+                    <S.CardStat>
+                      <FaHeart /> {item.like || 0}
+                    </S.CardStat>
                   </S.CardStats>
                 </S.CardInfo>
               </S.ContentCard>
@@ -207,24 +228,55 @@ const Profile = () => {
           <S.EmptyState>
             <S.EmptyIcon>💜</S.EmptyIcon>
             <S.EmptyTitle>좋아요한 숏폼이 없어요</S.EmptyTitle>
-            <S.EmptyDescription>마음에 드는 숏폼에 좋아요를 눌러보세요!</S.EmptyDescription>
+            <S.EmptyDescription>
+              마음에 드는 숏폼에 좋아요를 눌러보세요!
+            </S.EmptyDescription>
             <S.EmptyButton to="/shorts">숏폼 둘러보기</S.EmptyButton>
           </S.EmptyState>
         );
 
+      // ========== 찜한 유니버스  ==========
       case "bookmarkedUniverses":
-        return bookmarkedUniversesData.length > 0 ? (
+        if (bookmarkedLoading && bookmarkedUniverses.length === 0)
+          return renderLoading();
+
+        return bookmarkedUniverses.length > 0 ? (
           <S.ContentGrid>
-            {bookmarkedUniversesData.map((item) => (
-              <S.ContentCard key={item.id} onClick={() => handleCardClick("universe", item.id)}>
+            {bookmarkedUniverses.map((item) => (
+              <S.ContentCard
+                key={item.universeId}
+                onClick={() => handleCardClick("universe", item.universeId)}
+              >
                 <S.CardThumbnail>
-                  <img src={item.thumbnail} alt={item.title} />
+                  {item.thumbnailUrl ? (
+                    <img src={item.thumbnailUrl} alt={item.title} />
+                  ) : (
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        background: "linear-gradient(135deg, #1a1a2e, #16213e)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "2rem",
+                      }}
+                    >
+                      🌌
+                    </div>
+                  )}
+                  <S.CardBadge>유니버스</S.CardBadge>
                 </S.CardThumbnail>
                 <S.CardInfo>
                   <h3>{item.title}</h3>
-                  <p>by {item.creator}</p>
+                  <p>by {item.nickName}</p>
                   <S.CardStats>
-                    <S.CardStat><FaHeart /> {item.likes}</S.CardStat>
+                    <S.CardStat>
+                      <FaHeart /> {item.like || 0}
+                    </S.CardStat>
+                    <S.CardStat>
+                      <FaBookmark /> {item.bookmark || 0}
+                    </S.CardStat>
                   </S.CardStats>
                 </S.CardInfo>
               </S.ContentCard>
@@ -234,22 +286,36 @@ const Profile = () => {
           <S.EmptyState>
             <S.EmptyIcon>⭐</S.EmptyIcon>
             <S.EmptyTitle>찜한 유니버스가 없어요</S.EmptyTitle>
-            <S.EmptyDescription>마음에 드는 유니버스를 찜해보세요!</S.EmptyDescription>
+            <S.EmptyDescription>
+              마음에 드는 유니버스를 찜해보세요!
+            </S.EmptyDescription>
             <S.EmptyButton to="/universe">유니버스 둘러보기</S.EmptyButton>
           </S.EmptyState>
         );
 
+      // ========== 내 댓글  ==========
       case "myComments":
-        return myCommentsData.length > 0 ? (
+        if (commentsLoading && myComments.length === 0) return renderLoading();
+
+        return myComments.length > 0 ? (
           <S.CommentList>
-            {myCommentsData.map((comment) => (
-              <S.CommentItem key={comment.id}>
+            {myComments.map((comment) => (
+              <S.CommentItem key={comment.commentId}>
                 <S.CommentHeader>
                   <S.CommentTarget>
-                    {comment.targetType === "SHORTFORM" ? <FaVideo /> : <FaGlobe />}
-                    <span>{comment.targetTitle}</span>에 남긴 댓글
+                    {comment.targetType === "SHORTFORM" ? (
+                      <FaVideo />
+                    ) : (
+                      <FaGlobe />
+                    )}
+                    <span>
+                      {comment.shortFormTitle || `숏폼 #${comment.targetId}`}
+                    </span>
+                    에 남긴 댓글
                   </S.CommentTarget>
-                  <S.CommentDate>{comment.createdAt}</S.CommentDate>
+                  <S.CommentDate>
+                    {new Date(comment.createdAt).toLocaleDateString()}
+                  </S.CommentDate>
                 </S.CommentHeader>
                 <S.CommentContent>{comment.content}</S.CommentContent>
               </S.CommentItem>
@@ -273,25 +339,23 @@ const Profile = () => {
     <S.Container>
       {/* 프로필 헤더 */}
       <S.ProfileHeader>
-        <S.Avatar>GZ</S.Avatar>
+        <S.Avatar>{getInitials()}</S.Avatar>
         <S.UserInfo>
           <h1>
-            GenZ_Maker
+            {getDisplayName()}
             <S.Tag>🎵 Music Lover</S.Tag>
             <S.Tag>🎨 Creator</S.Tag>
           </h1>
-          <p>
-            새벽 감성 플리 모으는 중. 힙하지 않으면 안 듣습니다. 팔로우 환영! 👋
-          </p>
+          <p>{auth.email || "나만의 음악 세상을 만들어보세요"}</p>
           <S.Stats>
             <div>
-              1.2k <span>Followers</span>
+              - <span>Followers</span>
             </div>
             <div>
-              89 <span>Following</span>
+              - <span>Following</span>
             </div>
             <div>
-              <FaHeart color="#ff0080" /> 4.5k <span>Likes</span>
+              <FaHeart color="#ff0080" /> - <span>Likes</span>
             </div>
           </S.Stats>
         </S.UserInfo>
@@ -322,9 +386,7 @@ const Profile = () => {
           ))}
         </S.TabList>
 
-        <S.TabContent>
-          {renderTabContent()}
-        </S.TabContent>
+        <S.TabContent>{renderTabContent()}</S.TabContent>
       </S.TabSection>
     </S.Container>
   );
